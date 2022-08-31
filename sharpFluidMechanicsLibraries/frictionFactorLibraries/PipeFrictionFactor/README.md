@@ -335,6 +335,13 @@ to differentiate between $f_{darcy}$ and $f_{fanning}$.
 
 This will be available to the end user to calculate.
 
+That about sums it up for the pipe friction factor.
+
+However, we still want for us to find the bejan number. That's just the
+fLDK multiplied by $0.5 Re^2$ 
+
+
+This will be under dimensionless calculations...
 
 We want to use the Mathnet Numerics library
 

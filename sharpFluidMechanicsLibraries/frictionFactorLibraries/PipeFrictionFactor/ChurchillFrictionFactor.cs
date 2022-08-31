@@ -10,8 +10,18 @@ using System.Collections.Generic;
 namespace sharpFluidMechanicsLibraries{
 
 	public partial class ChurchillFrictionFactor : 
-		IFrictionFactor ,IFrictionFactorGetRe
+		IFrictionFactor ,IPipeReAndBe
 	{
+
+
+		/*************************************************
+		 * the follwing methods implement IFrictionFactor
+		 *
+		 *
+		 *
+		 * ***********************************************/
+
+
 		// this particular implementation uses the churchill correlation
 		public double fanning(double ReynoldsNumber, double roughnessRatio){
 
@@ -48,6 +58,38 @@ namespace sharpFluidMechanicsLibraries{
 			return fLDK;
 		}
 
+		/***********************************************
+		 * The following methods implement IPipeBeAndRe
+		 *
+		 *
+		 *
+		 *
+		 * ***********************************************/
+
+		public double getBe(double ReynoldsNumber,
+				double roughnessRatio,
+				double lengthToDiameterRatio,
+				double K){
+			double fLDK;
+			double f = this.darcy(ReynoldsNumber,
+					roughnessRatio);
+			fLDK = f*lengthToDiameterRatio + K;
+
+			double Be = 0.5*fLDK*
+				Math.Pow(ReynoldsNumber,2.0);
+
+			return Be;
+		}
+
+
+		/***********************************************
+		 * The following methods do the backend logic
+		 * for the churchill Friction factor
+		 *
+		 *
+		 *
+		 *
+		 * ***********************************************/
 
 		private double churchillInnerTerm(double Re, double roughnessRatio){
 

@@ -9,30 +9,37 @@ namespace sharpFluidMechanicsLibraries{
 		double darcy(double ReynoldsNumber, double roughnessRatio);
 		double fLDK(double ReynoldsNumber,
 				double roughnessRatio,
-				double lengthToDiameterRatio,
-				double K);
+				double lengthToDiameter,
+				double formLossK);
 	}
-	public interface IFrictionFactorGetRe
+	public interface IPipeReAndBe
 	{
 		double getRe(double Be, double roughnessRatio, 
 				double lengthToDiameter);
+
+		double getBe(double ReynoldsNumber, 
+				double roughnessRatio,
+				double lengthToDiameter,
+				double formLossK);
+				
+
 	}
 
 	public interface IfLDKFactorPipe {
 
 		double generic_fLDK(double ReynoldsNumber, double roughnessRatio,
 				double lengthToDiameter,
-				double K);
+				double formLossK);
 
 		double generic_fLDK_ReSq(double ReynoldsNumber, double roughnessRatio,
 				double lengthToDiameter,
-				double K);
+				double formLossK);
 	}
 
 	public interface IfLDKFactorGetRePipe
 	{
 		double generic_getRe(double Be, double roughnessRatio, 
 				double lengthToDiameter,
-				double K);
+				double formLossK);
 	}
 }

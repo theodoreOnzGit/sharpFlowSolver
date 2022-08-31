@@ -34,4 +34,18 @@ namespace sharpFluidMechanicsLibraries{
 		}
 
 	}
+
+	public class PipeReAndBe{
+
+		public double getBe(double Re, double roughnessRatio,
+				double lengthToDiameterRatio,
+				double K){
+			IPipeReAndBe frictionFactorCalcObj = 
+				new ChurchillFrictionFactor();
+			return frictionFactorCalcObj.getBe(Re,roughnessRatio,
+					lengthToDiameterRatio, 
+					K);
+		}
+	}
+
 }
