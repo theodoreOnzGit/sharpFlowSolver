@@ -821,6 +821,14 @@ corresponding to Re=1e12. That is definitely out of range.
 
 ### code details for pipes with form losses
 
+Now that we've settled the base case of pipe Re vs Be, we can go on to 
+build upon this code to include form losses.
+
+I can of course define a special case for which there are zero form losses,
+And that's where i will just use the no form loss code tested before.
+
+(It's kind of a boilerplate legacy code, but it works..., and most of all,
+i don't need to re-test it.
 
 
 

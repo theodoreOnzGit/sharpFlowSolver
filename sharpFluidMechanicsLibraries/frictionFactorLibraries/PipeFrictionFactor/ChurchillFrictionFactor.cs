@@ -131,6 +131,73 @@ namespace sharpFluidMechanicsLibraries{
 			return Be;
 		}
 
+		public double getRe(double Be_D,
+				double roughnessRatio,
+				double lengthToDiameter,
+				double formLossK){
+
+			if(formLossK == 0){
+				double Be_L = Be_D * Math.Pow(lengthToDiameter,
+						2.0);
+				return this.getRe(Be_L,
+						roughnessRatio,
+						lengthToDiameter);
+			}
+
+			if(lengthToDiameter <= 0)
+				throw new ArgumentOutOfRangeException(
+						"lengthToDiameterRatio<=0");
+
+			if(roughnessRatio < 0)
+				throw new ArgumentOutOfRangeException(
+						"roughnessRatio<0");
+
+			if(formLossK < 0)
+				throw new ArgumentOutOfRangeException(
+						"formLossK<0");
+
+			// this part deals with negative Be_L values
+			// invalid Be_L values
+			bool isNegative;
+			if (Be_D < 0)
+			{
+				Be_D *= -1;
+				isNegative = true;
+			}
+			else 
+			{
+				isNegative = false;
+			}
+
+			double maxRe = 1e12;
+
+			// i calculate the Be_D corresponding to 
+			// Re = 1e12
+			double maxBe_D = this.getBe(maxRe,
+					roughnessRatio, lengthToDiameter,
+					0.0);
+
+			if(Be_D >= maxBe_D)
+				throw new ArgumentOutOfRangeException(
+						"Be too large");
+			// the above checks for all the relevant exceptions
+			// including formLossK < 0
+			
+			double ReynoldsNumber = 0.0;
+
+			if (isNegative)
+			{
+				return -ReynoldsNumber;
+			}
+
+			return ReynoldsNumber;
+			throw new NotImplementedException();
+		}
+
+		// the following overload gets Re in case
+		// there is no form loss
+		// it also works based on Be_L rather than Be_D
+
 		public double getRe(double Be_L, 
 				double roughnessRatio,
 				double lengthToDiameter){
