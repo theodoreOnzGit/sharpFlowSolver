@@ -46,6 +46,18 @@ namespace sharpFluidMechanicsLibraries{
 					lengthToDiameterRatio, 
 					K);
 		}
+
+		public double getRe(double Be_D,
+				double roughnessRatio,
+				double lengthToDiameterRatio,
+				double K){
+			IPipeReAndBe frictionFactorCalcObj = 
+				new ChurchillFrictionFactor();
+			return frictionFactorCalcObj.getRe(Be_D,
+					roughnessRatio,
+					lengthToDiameterRatio, 
+					K);
+		}
 	}
 
 }
