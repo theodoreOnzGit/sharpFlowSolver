@@ -1,8 +1,6 @@
 // Here is a class for Fanning Friction Factor using Churchill's Correlation
 //
 
-using System;
-using MathNet.Numerics;
 
 public interface IFrictionFactor
 {
