@@ -233,8 +233,8 @@ Also, when Re is negative, or flow is perhaps reversed, the equation
 will also not make any sense. Thus we must be careful to watch out
 when using this equation for zero flow or reverse flow.
 
-# finding Re from pressure drop (nondimensional pressure drop Be)
 
+# finding Re from pressure drop (nondimensional pressure drop Be)
 Now in finding our friction factor from Reynold's number, it is
 a relatively simple affair when we calculate churchill friction 
 factor. Nevertheless, if we wanted to find the mass flowrate, 
@@ -340,8 +340,11 @@ That about sums it up for the pipe friction factor.
 However, we still want for us to find the bejan number. That's just the
 fLDK multiplied by $0.5 Re^2$ 
 
+$$Be = 0.5* fLDK * Re^2$$
 
 This will be under dimensionless calculations...
+
+This becomes the equation we will solve iteratively for Re given a Be.
 
 We want to use the Mathnet Numerics library
 

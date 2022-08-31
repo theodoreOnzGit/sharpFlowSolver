@@ -139,7 +139,7 @@ namespace sharpFluidMechanicsLibraries{
 
 
 
-		public double getRe(double Be, 
+		public double getRe(double Be_L, 
 				double roughnessRatio,
 				double lengthToDiameter){
 
@@ -148,14 +148,14 @@ namespace sharpFluidMechanicsLibraries{
 			//
 			// ie pressure drops in reverse direction, and this should
 			// yield us reverse flow and negative Reynold's numbers
-			// so what i'll do is this: if Be < 0,
+			// so what i'll do is this: if Be_L < 0,
 			// then i'll make it positive
 			//
 
 			bool isNegative;
-			if (Be < 0)
+			if (Be_L < 0)
 			{
-				Be *= -1;
+				Be_L *= -1;
 				isNegative = true;
 			}
 			else 
@@ -166,7 +166,7 @@ namespace sharpFluidMechanicsLibraries{
 
 			this.roughnessRatio = roughnessRatio;
 			this.lengthToDiameter = lengthToDiameter;
-			this.bejanNumber = Be;
+			this.bejanNumber = Be_L;
 
 			// I'll define a pressureDrop function with which to find
 			// the Reynold's Number
