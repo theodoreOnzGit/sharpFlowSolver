@@ -1043,8 +1043,19 @@ public class FrictionFactorTests : testOutputHelper
 
 	}
 
+	// the following
+	// tests for throwing exception 
+	// under
+	// (1) L/D < 0
+	// (2) L/D = 0
+	// (3) Re > 1e12 (too large Re for solver)
+	// (4) roughness ratio <0
+
 	[Theory]
 	[InlineData(0.0,0.1,-10)]
+	[InlineData(0.0,0.1,0)]
+	[InlineData(1e13,0.1,10)] 
+	[InlineData(5000,-0.1,10)] 
 	public void WhengetReNoFormLossUndesirableValueExpectException(
 			double Re,
 			double roughnessRatio,
@@ -1056,11 +1067,22 @@ public class FrictionFactorTests : testOutputHelper
 		frictionFactorObj = new ChurchillFrictionFactor();
 
 		// let's calculate Be manually first:
-		double Be_D = frictionFactorObj.
-			getBe(Re,roughnessRatio,lengthToDiameter,
-					0.0);
+		// so we have a value to subtitute in
+		double Be_D;
+		if(roughnessRatio >= 0){
+			Be_D = frictionFactorObj.
+				getBe(Re,roughnessRatio,lengthToDiameter,
+						0.0);
+		}else{
+			// if roughnesssRatio <0,
+			// getBe throws an exception,
+			// i want to test if 
+			Be_D = 500;
+		}
 		double Be_L = Be_D*
 			Math.Pow(lengthToDiameter, 2.0);
+
+		double maxRe = 1e12;
 
 
 		// Assert
@@ -1076,6 +1098,16 @@ public class FrictionFactorTests : testOutputHelper
 			return;
 		}
 		if(lengthToDiameter <= 0.0){
+			Assert.Throws<ArgumentOutOfRangeException>(
+					() => 
+					frictionFactorObj.
+					getRe(Be_L,
+						roughnessRatio,
+						lengthToDiameter)
+					);
+			return;
+		}
+		if(Re >= maxRe){
 			Assert.Throws<ArgumentOutOfRangeException>(
 					() => 
 					frictionFactorObj.
