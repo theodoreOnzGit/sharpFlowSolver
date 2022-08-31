@@ -1,15 +1,4 @@
-# FrictionFactor Readme
-
-## Design
-
-This friction factor class is based on churchill friction factor
-correlation.
-
-However, since there are many ways of finding friction factor
-I have written an IFrictionFactor interface so that we can
-have many ways of implementing the friction factor.
-
-Eg. Colebrook formula.
+# ChurchillFrictionFactor Readme
 
 
 ## Thread Safety Warning!
@@ -20,7 +9,21 @@ the time of writing this readme (Aug 2022). If you use it in
 parallel processing, use at your own risk. Or at least supply
 a different copy of the library for each thread.
 
-# IFrictionFactor
+## Design and Interfaces
+
+The main goal of the ChurchillFrictionFactor class is to
+provide the darcy, moody and fanning friction factor given
+a Reynold's number and roughness ratio.
+
+However, since there are many other ways of finding friction factor
+I have written an IFrictionFactor interface so that we can
+have many ways of implementing the friction factor.
+
+Eg. Colebrook Formula.
+
+
+
+### IFrictionFactor Interface
 
 The IFrictionFactor interface just returns the fanning, moody
 and darcy friction factor given a Re and roughness Ratio 
@@ -39,6 +42,27 @@ public interface IFrictionFactor
 	double darcy(double ReynoldsNumber, double roughnessRatio);
 }
 ```
+
+The moody and darcy friction factor are identitcal in formula,
+it's just that the difference in names may cause some confusion at
+times, and people may wonder if it's a different friction factor.
+
+In the laminar regime [(Brown, 2002)](#brown2002):
+
+$$f_{darcy} = f_{moody} = \frac{64}{Re}$$
+
+And the fanning friction factor is as follows 
+[(Welty et al. 2020)](#welty2020):
+$$f_{fanning} = \frac{16}{Re}$$
+
+While there are several friction factor methods, the Churchill 
+friction factor is able to use a singular equation for laminar,
+transitional and turbulent flow and also have a mean error compared
+to the colebrook correlation of about 0.475 - 0.48%  
+[(Winning And Coole, 2013)](#winning2013). This figure is largely
+dependent on roughness ratio but has not been reported to exceed
+0.48% [(Turgut et al., 2014)](#turgut2014).
+
 # ChurchHillFrictionFactor.cs
 Churchill friction factor is defined by:
 
@@ -363,375 +387,21 @@ The only thing that remains is to test it!
 
 
 
-# IFrictionFactorDerivatives
-
-Now we will need to calculate jacobians a lot!
-
-So we will need to calculate a lot of derivatives.
-
-For the KISS principle's sake, I am going to stuff things in the same
-class. However, to organise the Churchill Friction factor to be
-distinct from its derivatives, I will use partial classes.
-
-Meaning to say, the partial derivative functions will be part
-of a separate file, but in the same class.
-
-I also have a separate interface which fulfils the SOLID principle
-interface segregation since there are at least two ways of
-performing derivatives.
-
-One is to use numerical derivatives, ie, my own central difference
-code. (Or the MathNet implementation)
-
-The other is to use analytical derivatives as shown in the readme.
-
-## ChurchHill Friction factor Partial Derivative class
-
-```csharp
-
-public double calculateFanningPartialDerivative(double Re, 
-		double roughnessRatio){
-	//
-	// firstly i need to use the derivative object
-
-	IDerivative derivativeObj;
-	derivativeObj = new CentralDifference();
-
-	// secondly i need a function with a double
-	// in and out
-	// this is the function that returns the Reynold's number
-	// however, the roughness ratio is kept constant
-
-	this.roughnessRatio = roughnessRatio;
-
-	double constantRoughnessFanning(double Re){
-
-		double fanning = this.fanning(Re, this.roughnessRatio);
-
-		return fanning;
-	}
-
-	// now let's calculate the derivative at a specific Re
-
-	double derivativeResult;
-	derivativeResult = derivativeObj.calc(
-			constantRoughnessFanning, Re);
-
-	// after i'm done, clean up the roughness ratio
-	// variable within the class
-
-	this.roughnessRatio = 0.0;
-
-
-	return derivativeResult;
-
-}
-
-```
-
-The idea here is to take partial derivatives of the fanning 
-friction factor if constant roughness ratio is assumed.
-
-I again use the class variable roughnessRatio to help in this
-area. In that the local function constantRoughnessFanning uses
-this class variable roughnessRatio assumed to be constant during
-the time of this calculation.
-
-
-Note that this only works if the object instance is being 
-synchronously. It is not good for async since roughnessRatio
-can be changed.
-
-However, since we don't really care about speed at this point
-in time, I'm not going to bother yet.
-
-### testing
-The partial derivatives should be benchmarked against something.
-
-Unfortunately, there are no straightforward ways of getting
-reference values other than the analytical solution.
-
-And yet, the analytical solution itself is an untested class
-at this point.
-
-We can only assume that there is not a common systematic error
-between them, such that if the test passes, it's not because
-both analytical and numerical solution are equally wrong.
-
-But we have some confidence in the numerical result, since 
-the fanning friction factor and the derivative term have been
-tested extensively in unit testing.
-
-
-#### Testing: Laminar Region
-
-In the laminar region, the numerical derivative was benchmarked
-against the derivative of 16/Re which became $-16/Re^2$. With that
-in mind, the only challenge was in the turbulent region
-
-#### Testing: Turbulent Region
-
-For testing in the turbulent region, we want an expression easily
-differentiable but reasonably accurate compared to colebrook.
-
-The correlation by Tsal is indeed easy to differentiate.
-
-It is shown as [[1]](#frictionFactorApproximations):
-
-$$C = 0.11 (\frac{68}{Re} + \frac{\varepsilon}{D})^{0.25}$$
-$$if\ C \geq 0.018, f_{darcy} = C$$
-$$if\ C < 0.018, f_{darcy} = 0.0028 + 0.85*C$$
-
-While easy to differentiate, it has relatively high errors. 
-I tested it in the test suite and it seems to only work well
-in the smooth regions and regions of relatively low
-surface roughness.
-
-I again searched the [same paper](https://iwaponline.com/ws/article/20/4/1321/73330/Approximations-of-the-Darcy-Weisbach-friction)
-trying to find another relatively accurate correlation that is
-farily easy to differentiate:
-
-
-I found the Filonenko correlation which was, according to the paper
-found to have a relative error at most 0.5% and below. this is 
-comparable to churchill correlation, but is much easier to 
-differentiate. However, laminar region is not predicted by this
-equation.
-
-The Filonenko equation when adapted for rough pipes is as follows [[1]](#frictionFactorApproximations):
-
-$$\frac{1}{\sqrt{f_{Darcy}}}=-2 \log_{10} (\frac{6.6069}{Re^{0.91}}
-+ \frac{\varepsilon/D}{3.71})$$
-
-To obtain the derviative $\frac{d f_{Darcy}}{dRe}$, we can use:
-
-$$\frac{d}{dRe}\frac{1}{\sqrt{f_{Darcy}}}= 
-- \frac{1}{2}\frac{1}{f_{Darcy}^{3/2}} 
-\frac{d f_{Darcy}}{dRe} $$
-
-$$\frac{d f_{Darcy}}{dRe} = -2 f_{Darcy}^{1.5}
-\frac{d}{dRe}\frac{1}{\sqrt{f_{Darcy}}}$$
-
-
-To obtain the derivative, 
-we first transform the base of the logarithm:
-$$\frac{1}{\sqrt{f_{Darcy}}}=-2 \frac{1}{\ln_{10}}\ln 
-(\frac{6.6069}{Re^{0.91}}
-+ \frac{\varepsilon/D}{3.71})$$
-
-The derivative can be obtained analytically as:
-$$\frac{d}{dRe}\frac{1}{\sqrt{f_{Darcy}}}= -2 \frac{1}{\ln 10}
-\frac{6.6069*(-0.91)*Re^{-1.91}}{\frac{6.6069}{Re^{0.91}}
-+\frac{\varepsilon/D}{3.71}}$$
-
-
-## Analytical Derivative
-
-The analytical derivative of f with respect to Re was calculated
-in the README.md of fluid pipe theory.
-
-What has been done is that the analytical derivative for $f(Re)Re^2$
-has already been calculated. For constant roughness ratio.
-
-$$\frac{d}{d(Re)} [f(Re) Re^2] = Re^2 \frac{d}{d(Re)} [f(Re)]
-+ f(Re) * 2Re$$
-
-
-Since this is the case, i can back calculate the derivative.
-
-$$Re^2 \frac{d}{d(Re} [f(Re)] =  \frac{d}{d(Re)} [f(Re) Re^2]
--f(Re) * 2Re$$
-
-Divide both sides by $Re^2$ and we should get the differential value.
-All without using numerical methods, but rather analytical.
-
-I can implement this function and just return this value.
-
-```csharp
-
-public override double calculateFanningPartialDerivative(
-		double Re, double roughnessRatio){
-
-	double derivativeResult;
-	derivativeResult = this.partialDerivativeFanningReSquared(Re,
-			roughnessRatio);
-
-	derivativeResult -= 2.0 * Re * this.fanning(Re,roughnessRatio);
-
-	derivativeResult /= Math.Pow(Re,2.0);
-
-	return derivativeResult;
-}
-```
-
-### terms and functions
-
-To calculate the fanningDerivativeReSquared I used:
-
-```csharp
-
-public double partialDerivativeFanningReSquared(
-		double Re, double roughnessRatio){
-
-	double finalValue;
-	finalValue = 1.0/6.0;
-	finalValue *= this.dG1_dRe(Re, roughnessRatio);
-	finalValue /= this.G1(Re,roughnessRatio);
-	finalValue *= Math.Pow(this.G1(Re,roughnessRatio),1.0/12.0);
-	return finalValue;
-}
-```
-
-The first function used is dG1_dRe, and G1.
-
-G1 is:
-```csharp
-
-public double G1(double Re, double roughnessRatio){
-
-	double g1value;
-	g1value = Math.Pow(8.0*Re,12.0);
-	double g1RHSvalue = Math.Pow(Re,16.0*3.0/2.0);
-	g1RHSvalue *= Math.Pow(
-			this.A(Re,roughnessRatio)
-			+this.B(Re),
-			-3.0/2.0);
-
-	g1value += g1RHSvalue;
-
-	return g1value;
-}
-```
-
-whereas dG1_dRe is:
-```csharp
-
-public double dG1_dRe(double Re, double roughnessRatio){
-
-	double finalValue;
-	finalValue = -Math.Pow(Re,16.0) *
-		(this.dA_dRe(Re, roughnessRatio) + this.dB_dRe(Re));
-	
-	finalValue += 16.0 * Math.Pow(Re,15.0) *
-		(this.A(Re,roughnessRatio) + this.B(Re));
-
-	finalValue /= Math.Pow(this.A(Re,roughnessRatio)+
-			this.B(Re),2.0);
-
-	finalValue *= 3.0/2.0 * Math.Pow(Re,16.0/2.0);
-
-	finalValue /= Math.Pow(this.A(Re,roughnessRatio) + 
-			this.B(roughnessRatio),1.0/2.0);
-
-	finalValue += 96.0 * Math.Pow(Re,11.0);
-
-
-	return finalValue;
-
-}
-```
-
-The A and B will be inherited from the Churchill Friction Factor class.
-
-```csharp
-
-public class ChurchillAnalyticalDerivative : 
-	ChurchHillFrictionFactor,IFrictionFactorDerivatives
-
-```
-
-Whereas the derivatives are as follows:
-
-
-I will need dB_dRe.
-
-As derived before, it is 
-
-$$\frac{dB}{dRe} = -B \frac{16}{Re}$$
-
-So we would want to have B on standby.
-
-I will hence make A and B public so that I can inherit them.
-
-And I will also make the calculate fanning Partial Derivative
-classes overwriteable
-
-```csharp
-public double dB_dRe(double Re){
-	return -this.B(Re) * 16.0 / Re;
-}
-```
-
-
-Then I would need dA_dRe also:
-
-```csharp
-public double dA_dRe(double Re, double roughnessRatio){
-	double dAdReValue;
-	dAdReValue = 16*this.A(Re,roughnessRatio);
-	dAdReValue *= this.dG2_dRe(Re);
-	dAdReValue /= this.G2(Re,roughnessRatio);
-	dAdReValue /= Math.Log(this.G2(Re,roughnessRatio));
-
-	return dAdReValue;
-}
-```
-
-G2 is:
-
-```csharp
-public double G2(double Re, double roughnessRatio){
-
-	double g2value;
-	g2value = Math.Pow(7.0/Re, 0.9);
-	g2value += 0.27*roughnessRatio;
-
-	return g2value;
-
-}
-```
-
-and dG2_dRe is:
-
-This is of course assuming roughness ratio does not change with Re.
-Should make physical sense.
-
-
-```csharp
-
-
-public double dG2_dRe(double Re){
-
-	return -5.1859789 * Math.Pow(Re,-1.9);
-}
-```
-
-Next thing is to just test this thing and see if any debugging is needed.
-
-### Analytical expression: depracated till further notice
-
-It turns out that after testing, i cannot pinpoint the 
-source of the bug easily.
-
-The churchill friction factor correlation is twice that
-of the laminar correlation. And I have no easy way to tell
-where I made a mistake in the derivation.
-
-My solution forward is to use the numerical method.
-However, I will use friction factor representations that
-are both accurate (<1%  error compared to $f_{D\ colebrook}$
-) and easy to differentiate.
-
-This will become my benchmark for the numerical method in
-the turbulent region.
-
-The numerical solution was tested against the benchmark
-in the laminar region already and results were satisfactory.
 
 
 # Bibliography
 
-<a id="frictionFactorApproximations">
-[1]
-Zeyu, Z., Junrui, C., Zhanbin, L., Zengguang, X., & Peng, L. (2020). Approximations of the Darcy–Weisbach friction factor in a vertical pipe with full flow regime. Water Supply, 20(4), 1321-1333.
-</a>
+##### Brown2002
+
+Brown, G. O. (2002). The history of the Darcy-Weisbach equation for pipe flow resistance. Environmental and water resources history, 38(7), 34-43.
+
+##### Welty2020
+
+Welty, J., Rorrer, G. L., & Foster, D. G. (2020). Fundamentals of momentum, heat, and mass transfer. John Wiley & Sons.
+
+##### Winning2013
+Winning, H. K., & Coole, T. (2013). Explicit friction factor accuracy and computational efficiency for turbulent flow in pipes. Flow, turbulence and combustion, 90(1), 1-27.
+
+##### Turgut2014
+
+Turgut, O. E., Asker, M., & Coban, M. T. (2014). A review of non iterative friction factor correlations for the calculation of pressure drop in pipes. Bitlis Eren University Journal of Science and Technology, 4(1), 1-8.
