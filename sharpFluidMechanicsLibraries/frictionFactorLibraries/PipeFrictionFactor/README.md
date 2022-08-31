@@ -63,8 +63,15 @@ to the colebrook correlation of about 0.475 - 0.48%
 dependent on roughness ratio but has not been reported to exceed
 0.48% [(Turgut et al., 2014)](#turgut2014).
 
+Given this satisfactory performance (I define satisfactory as <1% 
+error compared to colebrook), I have opted to stick with the
+Churchill correlation as it can provide a continuous function
+to help estimate friction factors between laminar and turbulent 
+regions.
+
 # ChurchHillFrictionFactor.cs
-Churchill friction factor is defined by:
+Churchill friction factor [(Winning and Coole, 2013)](#winning2013)
+is defined by:
 
 
 $$f_{fanning} = 2 \left[\\
@@ -84,7 +91,11 @@ B = \left( \frac{37530}{Re} \\
 \right)^{16} $$
 
 
-## Defining A and B
+## Defining A and B in the Code
+
+For now, all the parameters needed for the Churchill Correlation
+are dimensionless. Therefore we will just use doubles to represent
+dimensionless numbers.
 
 $$A = \left[ 2.457 \ln \frac{1}{\left( (7/Re)^{0.9} + \\
 0.27 \frac{\varepsilon}{D} \right)} \\
@@ -124,6 +135,13 @@ private double B(double Re){
 ```
 ##  intermediate calculation
 
+Now, to keep the code neat, such that we don't have too much
+math going on in one line, i have seprated out the calculations
+for the A and B term into different functions. Also, I have
+made this innerTerm function to calculate the following parameter.
+
+
+
 $$innerTerm =  \left[\\
 \left( \frac{8}{Re} \right)^{12} + \\
 \left( \frac{1}{A+B}\right)^{3/2} \\
@@ -149,6 +167,10 @@ private double churchillInnerTerm(double Re, double roughnessRatio){
 
 
 ```
+
+If this inner term is calculated well, we can just use the Math.Pow
+formula to calculate the fanning friction factor.
+
 ## fanning friction factor
 
 So to calculate fanning friction factor,
@@ -198,8 +220,32 @@ public double moody(double ReynoldsNumber, double roughnessRatio){
 Just instantiate the object and use the fanning friction factor term
 straightaway.
 
+## Caution for Re <= 0
+
+When calculating friction factor, it is important that Re>0. 
+Otherwise, we will have a divide by zero exception.
+
+Thus, this correlation becomes undefined at zero flow. Caution
+should be exercised when using this correlation to calculate
+pressure losses at zero mass flowrate or Re.
+
+Also, when Re is negative, or flow is perhaps reversed, the equation
+will also not make any sense. Thus we must be careful to watch out
+when using this equation for zero flow or reverse flow.
 
 # finding Re from pressure drop (nondimensional pressure drop Be)
+
+Now in finding our friction factor from Reynold's number, it is
+a relatively simple affair when we calculate churchill friction 
+factor. Nevertheless, if we wanted to find the mass flowrate, 
+velocity or Re from a given friction factor, we would be in trouble
+because one friction factor value can have multiple Re which
+yield the same friction factor within laminar, 
+transition and turbulent region.
+
+Therefore, in practice, it is better to supply a pressure loss
+term, or pressure drop term, or the nondimensionalised equivalent
+to solve for an explicit value of Re.
 
 
 For pressure drop, we have the explicit correlation
