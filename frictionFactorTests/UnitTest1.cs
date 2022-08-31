@@ -559,4 +559,161 @@ public class FrictionFactorTests : testOutputHelper
 		// this is good
 		// the anomalous data point is at Re=2200
 	}
+
+	[Theory]
+	[InlineData(4000, 0.05, 0.076986834889224)]
+	[InlineData(40000, 0.05, 0.072124054027755)]
+	[InlineData(4e5, 0.05, 0.071608351787938)]
+	[InlineData(4e6, 0.05,  0.071556444535705)]
+	[InlineData(4e7, 0.05,  0.071551250389636)]
+	[InlineData(4e8, 0.05, 0.071550730940769)]
+	[InlineData(4e9, 0.05, 0.071550678995539)]
+	[InlineData(4e3, 0.0, 0.039907014055631)]
+	[InlineData(4e7, 0.00005, 0.010627694187016)]
+	[InlineData(4e6, 0.001, 0.019714092419925)]
+	[InlineData(4e5, 0.01, 0.038055838413508)]
+	[InlineData(4e4, 0.03,  0.057933060738478)]
+	public void WhenDarcyWrapperTestedTurbulentErrorLessThan2Percent(
+			double Re,double roughnessRatio, double referenceFrictionFactor){
+		// i'm making the variable explicit so the user can see
+		// it's darcy friction factor, no ambiguity here
+
+		// Setup
+		double referenceDarcyFactor = referenceFrictionFactor;
+
+		// also the above values are visually inspected with respect to the graph
+		GetFrictionFactor frictionFactorObj;
+		frictionFactorObj = new GetFrictionFactor();
+
+		// Act
+
+		double resultDarcyFactor =  frictionFactorObj.darcy(Re,roughnessRatio);
+		
+
+		double resultErrorFraction = Math.Abs(
+				referenceDarcyFactor - resultDarcyFactor)/referenceDarcyFactor;
+
+		// Assert
+		//
+
+		// I want to check if the error is less than 1%
+		bool resultSatisfactory = (resultErrorFraction < 0.01);
+		if(resultSatisfactory){
+			Assert.True(resultSatisfactory);
+			return;
+		}
+		// if error is more than 1%, check the maximum error
+		bool resultSomewhatSatisfactory = (resultErrorFraction < 0.02);
+		if(resultSomewhatSatisfactory){
+			Assert.True(resultSomewhatSatisfactory);
+			return;
+			// 4 cases fall under this category
+		}
+
+	}
+
+	[Theory]
+	[InlineData(4000, 0.05, 0.076986834889224)]
+	[InlineData(40000, 0.05, 0.072124054027755)]
+	[InlineData(4e5, 0.05, 0.071608351787938)]
+	[InlineData(4e6, 0.05,  0.071556444535705)]
+	[InlineData(4e7, 0.05,  0.071551250389636)]
+	[InlineData(4e8, 0.05, 0.071550730940769)]
+	[InlineData(4e9, 0.05, 0.071550678995539)]
+	[InlineData(4e3, 0.0, 0.039907014055631)]
+	[InlineData(4e7, 0.00005, 0.010627694187016)]
+	[InlineData(4e6, 0.001, 0.019714092419925)]
+	[InlineData(4e5, 0.01, 0.038055838413508)]
+	[InlineData(4e4, 0.03,  0.057933060738478)]
+	public void WhenMoodyWrapperTestedTurbulentErrorLessThan2Percent(
+			double Re,double roughnessRatio, double referenceFrictionFactor){
+		// i'm making the variable explicit so the user can see
+		// it's darcy friction factor, no ambiguity here
+
+		// Setup
+		double referenceMoodyFactor = referenceFrictionFactor;
+
+		// also the above values are visually inspected with respect to the graph
+		GetFrictionFactor frictionFactorObj;
+		frictionFactorObj = new GetFrictionFactor();
+
+		// Act
+
+		double resultMoodyFactor =  frictionFactorObj.moody(Re,roughnessRatio);
+		
+
+		double resultErrorFraction = Math.Abs(
+				referenceMoodyFactor - resultMoodyFactor)/referenceMoodyFactor;
+
+		// Assert
+		//
+
+		// I want to check if the error is less than 1%
+		bool resultSatisfactory = (resultErrorFraction < 0.01);
+		if(resultSatisfactory){
+			Assert.True(resultSatisfactory);
+			return;
+		}
+		// if error is more than 1%, check the maximum error
+		bool resultSomewhatSatisfactory = (resultErrorFraction < 0.02);
+		if(resultSomewhatSatisfactory){
+			Assert.True(resultSomewhatSatisfactory);
+			return;
+			// 4 cases fall under this category
+		}
+
+	}
+
+	[Theory]
+	[InlineData(4000, 0.05, 0.076986834889224)]
+	[InlineData(40000, 0.05, 0.072124054027755)]
+	[InlineData(4e5, 0.05, 0.071608351787938)]
+	[InlineData(4e6, 0.05,  0.071556444535705)]
+	[InlineData(4e7, 0.05,  0.071551250389636)]
+	[InlineData(4e8, 0.05, 0.071550730940769)]
+	[InlineData(4e9, 0.05, 0.071550678995539)]
+	[InlineData(4e3, 0.0, 0.039907014055631)]
+	[InlineData(4e7, 0.00005, 0.010627694187016)]
+	[InlineData(4e6, 0.001, 0.019714092419925)]
+	[InlineData(4e5, 0.01, 0.038055838413508)]
+	[InlineData(4e4, 0.03,  0.057933060738478)]
+	public void WhenFanningWrapperTestedTurbulentErrorLessThan2Percent(
+			double Re,double roughnessRatio, double referenceFrictionFactor){
+		// i'm making the variable explicit so the user can see
+		// it's darcy friction factor, no ambiguity here
+
+		// Setup
+		double referenceFanningFactor = referenceFrictionFactor/4.0;
+
+		// also the above values are visually inspected with respect to the graph
+		GetFrictionFactor frictionFactorObj;
+		frictionFactorObj = new GetFrictionFactor();
+
+		// Act
+
+		double resultFanningFactor =  frictionFactorObj.fanning(Re,roughnessRatio);
+		
+
+		double resultErrorFraction = Math.Abs(
+				referenceFanningFactor - resultFanningFactor)/
+			referenceFanningFactor;
+
+		// Assert
+		//
+
+		// I want to check if the error is less than 1%
+		bool resultSatisfactory = (resultErrorFraction < 0.01);
+		if(resultSatisfactory){
+			Assert.True(resultSatisfactory);
+			return;
+		}
+		// if error is more than 1%, check the maximum error
+		bool resultSomewhatSatisfactory = (resultErrorFraction < 0.02);
+		if(resultSomewhatSatisfactory){
+			Assert.True(resultSomewhatSatisfactory);
+			return;
+			// 4 cases fall under this category
+		}
+
+	}
 }
