@@ -371,6 +371,7 @@ public class FrictionFactorTests : testOutputHelper
 		// 3.5% up to Re=2200 with the laminar flow correlation,
 		// this is good
 		// the anomalous data point is at Re=2200
+		throw new Exception("result unsatisfactory");
 	}
 
 	[Theory]
@@ -433,6 +434,7 @@ public class FrictionFactorTests : testOutputHelper
 		// 3.5% up to Re=2200 with the laminar flow correlation,
 		// this is good
 		// the anomalous data point is at Re=2200
+		throw new Exception("result unsatisfactory");
 	}
 
 	[Theory]
@@ -495,6 +497,7 @@ public class FrictionFactorTests : testOutputHelper
 		// 3.5% up to Re=2200 with the laminar flow correlation,
 		// this is good
 		// the anomalous data point is at Re=2200
+		throw new Exception("result unsatisfactory");
 	}
 	[Theory]
 	[InlineData(100, 0.05)]
@@ -558,6 +561,7 @@ public class FrictionFactorTests : testOutputHelper
 		// 3.5% up to Re=2200 with the laminar flow correlation,
 		// this is good
 		// the anomalous data point is at Re=2200
+		throw new Exception("result unsatisfactory");
 	}
 
 	[Theory]
@@ -609,6 +613,7 @@ public class FrictionFactorTests : testOutputHelper
 			return;
 			// 4 cases fall under this category
 		}
+		throw new Exception("result unsatisfactory");
 
 	}
 
@@ -661,6 +666,7 @@ public class FrictionFactorTests : testOutputHelper
 			return;
 			// 4 cases fall under this category
 		}
+		throw new Exception("result unsatisfactory");
 
 	}
 
@@ -714,6 +720,68 @@ public class FrictionFactorTests : testOutputHelper
 			return;
 			// 4 cases fall under this category
 		}
+		throw new Exception("result unsatisfactory");
+
+	}
+
+	[Theory]
+	[InlineData(4000, 0.05, 0.076986834889224, 5,1)]
+	[InlineData(40000, 0.05, 0.072124054027755,6,3)]
+	[InlineData(4e5, 0.05, 0.071608351787938, 7, 2)]
+	[InlineData(4e6, 0.05,  0.071556444535705, 4.5, 1.5)]
+	[InlineData(4e7, 0.05,  0.071551250389636, 8.8,9)]
+	[InlineData(4e8, 0.05, 0.071550730940769, 10, 70)]
+	[InlineData(4e9, 0.05, 0.071550678995539, 100, 1000)]
+	[InlineData(4e3, 0.0, 0.039907014055631, 77 , 84)]
+	[InlineData(4e7, 0.00005, 0.010627694187016, 123, 123)]
+	[InlineData(4e6, 0.001, 0.019714092419925, 0.5, 0.5)]
+	[InlineData(4e5, 0.01, 0.038055838413508, 0.8, 83)]
+	[InlineData(4e4, 0.03,  0.057933060738478, 1.4, 7.5)]
+	public void WhenfLDKWrapperExpectCorrectValue(
+			double Re,double roughnessRatio, 
+			double referenceFrictionFactor,
+			double lengthToDiameter,
+			double formLossK){
+		// i'm making the variable explicit so the user can see
+		// it's darcy friction factor, no ambiguity here
+
+		// Setup
+		double reference_fLDK = referenceFrictionFactor*
+			lengthToDiameter + formLossK;
+
+		// also the above values are visually inspected with respect to the graph
+		PipeFrictionFactor frictionFactorObj;
+		frictionFactorObj = new PipeFrictionFactor();
+
+		// Act
+
+		double resultfLDKFactor =  frictionFactorObj.
+			fLDK(Re,roughnessRatio,
+					lengthToDiameter,
+					formLossK);
+		
+
+		double resultErrorFraction = Math.Abs(
+				reference_fLDK - resultfLDKFactor)/
+			reference_fLDK;
+
+		// Assert
+		//
+
+		// I want to check if the error is less than 1%
+		bool resultSatisfactory = (resultErrorFraction < 0.01);
+		if(resultSatisfactory){
+			Assert.True(resultSatisfactory);
+			return;
+		}
+		// if error is more than 1%, check the maximum error
+		bool resultSomewhatSatisfactory = (resultErrorFraction < 0.02);
+		if(resultSomewhatSatisfactory){
+			Assert.True(resultSomewhatSatisfactory);
+			return;
+			// 4 cases fall under this category
+		}
+		throw new Exception("result unsatisfactory");
 
 	}
 }

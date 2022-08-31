@@ -333,7 +333,7 @@ $$fLDK = (f_{darcy} \frac{L}{D} +K) = (f_{fanning} \frac{4L}{D} +K)$$
 This term is convenient for us because it will negate the constant need
 to differentiate between $f_{darcy}$ and $f_{fanning}$. 
 
-
+This will be available to the end user to calculate.
 
 
 We want to use the Mathnet Numerics library
