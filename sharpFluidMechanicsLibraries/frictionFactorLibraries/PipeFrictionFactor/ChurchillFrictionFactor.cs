@@ -116,6 +116,10 @@ namespace sharpFluidMechanicsLibraries{
 				double roughnessRatio,
 				double lengthToDiameterRatio,
 				double K){
+
+			if(ReynoldsNumber == 0)
+				return 0.0;
+
 			double fLDK;
 			double f = this.darcy(ReynoldsNumber,
 					roughnessRatio);

@@ -410,11 +410,21 @@ fLDK multiplied by $0.5 Re^2$
 
 $$Be = 0.5* fLDK * Re^2$$
 
+One would think that just substituting this equation into a function would work.
+
+However, if Re = 0, we would get an error again.
+
+To sort this out, I would then return Be = 0  if Re = 0.
+
 ```csharp
 public double getBe(double ReynoldsNumber,
 		double roughnessRatio,
 		double lengthToDiameterRatio,
 		double K){
+
+	if(ReynoldsNumber == 0)
+		return 0.0;
+
 	double fLDK;
 	double f = this.darcy(ReynoldsNumber,
 			roughnessRatio);
@@ -426,6 +436,8 @@ public double getBe(double ReynoldsNumber,
 	return Be;
 }
 ```
+
+
 
 
 This will be under dimensionless calculations...
@@ -776,6 +788,38 @@ if(roughnessRatio < 0)
 
 In particular, we also don't want the Bejan number to exceed the amount
 corresponding to Re=1e12. That is definitely out of range.
+
+```csharp
+	// this part deals with negative Be_L values
+	// invalid Be_L values
+	bool isNegative;
+	if (Be_L < 0)
+	{
+		Be_L *= -1;
+		isNegative = true;
+	}
+	else 
+	{
+		isNegative = false;
+	}
+
+	double maxRe = 1e12;
+
+	// i calculate the Be_L corresponding to 
+	// Re = 1e12
+	double maxBe_D = this.getBe(maxRe,
+			roughnessRatio, lengthToDiameter,
+			0.0);
+	double maxBe_L = maxBe_D*
+		Math.Pow(lengthToDiameter,2.0);
+
+	if(Be_L >= maxBe_L)
+		throw new ArgumentOutOfRangeException(
+				"Be too large");
+```
+
+
+### code details for pipes with form losses
 
 
 
