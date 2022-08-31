@@ -249,8 +249,92 @@ to solve for an explicit value of Re.
 
 
 For pressure drop, we have the explicit correlation
-$$f_{fanning}(Re,\frac{\varepsilon}{D})* Re^2 = \frac{32 Be}{ (\frac{4L}{D})^3 
+$$f_{fanning}(Re,\frac{\varepsilon}{D})* Re^2 = \frac{32 Be_L}{ (\frac{4L}{D})^3 
 }$$
+
+This is derived via nondimensionalising the Darcy Weisbach equation
+[(Turgut et al., 2014)](#turgut2014):
+
+$$f_{fanning} \frac{4L}{D} \  \frac{1}{2} \rho u^2 = \Delta P_{loss}$$
+$$f_{darcy} \frac{L}{D} \  \frac{1}{2} \rho u^2 = \Delta P_{loss}$$
+
+I note here the $\Delta P_{losses}$ is referring to pressure losses.
+
+However, when it comes to writing code, we may not wish to leave it
+in dimensional form as it is very easy to make mistakes with units.
+
+If we nondimensionalise the pressure loss terms and velocities, we
+may avoid such unit based errors within the code. 
+
+We shall conveniently nondimensionalise velocity using Re,
+
+$$Re = \frac{u D_H \rho}{\mu}$$
+
+And this results in:
+
+$$f_{fanning}  Re^2 = \frac{\Delta P_{loss}}{ (\frac{4L}{D}) \  
+\frac{1}{2} \rho (\frac{ \mu}{\rho D})^2 }$$
+To nondimensionalise the pressure loss terms,
+The [Bejan Number](https://www.sciencedirect.com/science/article/abs/pii/S0735193321000075)
+[(Zimparov et al., 2021)](#zimparov2021)
+is a number that represents a sort of dimensionless pressure drop.
+
+It was originally derived for heat transfer, but can just 
+as easily apply for fluid mechanics.
+
+For heat transfer, it is defined as:
+
+$$Be_L = \frac{\Delta P L^2 }{\mu \alpha }$$
+
+
+For our case:
+$$Be_L = \frac{\Delta P_{loss} L^2}{\nu^2\rho} $$
+$$Be_L = \frac{\Delta P_{loss} L^2 \rho}{\mu^2} $$
+
+Subtituting this definition of the Bejan number results in:
+
+$$f_{fanning}(Re,\frac{\varepsilon}{D})* Re^2 = \frac{32 Be_L}{ (\frac{4L}{D})^3 
+}$$
+
+Now this is okay for pipes without any form losses. But for pipes with
+form losses, there is an extra K term which may appear inside:
+
+$$(f_{darcy} \frac{L}{D} +K)  \frac{1}{2} \rho u^2 = \Delta P_{loss}$$
+
+Therefore i have taken the liberty to redefine the Bejan number so that
+it can fit our case:
+
+$$Be_D = \frac{\Delta P_{loss} D^2}{\nu^2\rho} $$
+
+With this, we can nondimensionalise:
+$$(f_{fanning}  \frac{4L}{D}+K) Re^2 = \frac{\Delta P_{loss}}{   
+\frac{1}{2} \rho (\frac{ \mu}{\rho D})^2 }$$
+
+Into:
+
+$$Be_D = 0.5 (f_{fanning}  \frac{4L}{D}+K) Re^2$$
+$$Be_D = 0.5 (f_{darcy} \frac{L}{D}+K) Re^2$$
+
+
+This has the additional advantage of being easier to remember as there
+isn't a cube length to diameter term, or a constant of 32.
+
+Thus, the solution procedure when it comes to finding pipe mass flowrates
+and pressure losses is often to nondimensionalise the pressure loss and 
+velocity/mass flowrate terms and use this equation to solve for Be or Re.
+
+And then redimensionalise the terms.
+
+With this in mind, i'd like to have quick methods to calculate fLDK terms:
+
+
+$$fLDK = (f_{darcy} \frac{L}{D} +K) = (f_{fanning} \frac{4L}{D} +K)$$
+
+This term is convenient for us because it will negate the constant need
+to differentiate between $f_{darcy}$ and $f_{fanning}$. 
+
+
+
 
 We want to use the Mathnet Numerics library
 
@@ -451,3 +535,19 @@ Winning, H. K., & Coole, T. (2013). Explicit friction factor accuracy and comput
 ##### Turgut2014
 
 Turgut, O. E., Asker, M., & Coban, M. T. (2014). A review of non iterative friction factor correlations for the calculation of pressure drop in pipes. Bitlis Eren University Journal of Science and Technology, 4(1), 1-8.
+
+##### Zimparov2021
+
+Zimparov, V. D., Angelov, M. S., & Hristov, J. Y. (2021). Critical review of the definitions of the Bejan number-first law of thermodynamics. International Communications in Heat and Mass Transfer, 124, 105113.
+
+
+
+
+
+
+
+
+
+
+
+

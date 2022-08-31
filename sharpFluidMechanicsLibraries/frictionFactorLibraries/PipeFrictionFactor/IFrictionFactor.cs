@@ -7,6 +7,10 @@ namespace sharpFluidMechanicsLibraries{
 		double fanning(double ReynoldsNumber, double roughnessRatio);
 		double moody(double ReynoldsNumber, double roughnessRatio);
 		double darcy(double ReynoldsNumber, double roughnessRatio);
+		double fLDK(double ReynoldsNumber,
+				double roughnessRatio,
+				double lengthToDiameterRatio,
+				double K);
 	}
 	public interface IFrictionFactorGetRe
 	{

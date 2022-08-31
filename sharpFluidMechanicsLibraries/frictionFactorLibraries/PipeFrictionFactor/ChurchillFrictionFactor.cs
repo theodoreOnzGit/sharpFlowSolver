@@ -36,6 +36,17 @@ namespace sharpFluidMechanicsLibraries{
 			return darcyFrictionFactor;
 		}
 
+		public double fLDK(double ReynoldsNumber,
+				double roughnessRatio,
+				double lengthToDiameterRatio,
+				double K){
+			double fLDK;
+			double f = this.darcy(ReynoldsNumber,
+					roughnessRatio);
+			fLDK = f*lengthToDiameterRatio + K;
+
+			return fLDK;
+		}
 
 
 		private double churchillInnerTerm(double Re, double roughnessRatio){

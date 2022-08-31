@@ -402,8 +402,8 @@ public class FrictionFactorTests : testOutputHelper
 
 		double referenceFrictionFactor = 16/Re;
 
-		GetFrictionFactor frictionFactorObj;
-		frictionFactorObj = new GetFrictionFactor();
+		PipeFrictionFactor frictionFactorObj;
+		frictionFactorObj = new PipeFrictionFactor();
 
 		// Act
 
@@ -464,8 +464,8 @@ public class FrictionFactorTests : testOutputHelper
 
 		double referenceFrictionFactor = 64.0/Re;
 
-		GetFrictionFactor frictionFactorObj;
-		frictionFactorObj = new GetFrictionFactor();
+		PipeFrictionFactor frictionFactorObj;
+		frictionFactorObj = new PipeFrictionFactor();
 
 		// Act
 
@@ -525,8 +525,8 @@ public class FrictionFactorTests : testOutputHelper
 
 		double referenceFrictionFactor = 16/Re;
 
-		GetFrictionFactor frictionFactorObj;
-		frictionFactorObj = new GetFrictionFactor();
+		PipeFrictionFactor frictionFactorObj;
+		frictionFactorObj = new PipeFrictionFactor();
 
 		// Act
 
@@ -582,8 +582,8 @@ public class FrictionFactorTests : testOutputHelper
 		double referenceDarcyFactor = referenceFrictionFactor;
 
 		// also the above values are visually inspected with respect to the graph
-		GetFrictionFactor frictionFactorObj;
-		frictionFactorObj = new GetFrictionFactor();
+		PipeFrictionFactor frictionFactorObj;
+		frictionFactorObj = new PipeFrictionFactor();
 
 		// Act
 
@@ -634,8 +634,8 @@ public class FrictionFactorTests : testOutputHelper
 		double referenceMoodyFactor = referenceFrictionFactor;
 
 		// also the above values are visually inspected with respect to the graph
-		GetFrictionFactor frictionFactorObj;
-		frictionFactorObj = new GetFrictionFactor();
+		PipeFrictionFactor frictionFactorObj;
+		frictionFactorObj = new PipeFrictionFactor();
 
 		// Act
 
@@ -686,8 +686,8 @@ public class FrictionFactorTests : testOutputHelper
 		double referenceFanningFactor = referenceFrictionFactor/4.0;
 
 		// also the above values are visually inspected with respect to the graph
-		GetFrictionFactor frictionFactorObj;
-		frictionFactorObj = new GetFrictionFactor();
+		PipeFrictionFactor frictionFactorObj;
+		frictionFactorObj = new PipeFrictionFactor();
 
 		// Act
 
