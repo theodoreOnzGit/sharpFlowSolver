@@ -8,8 +8,8 @@ using System.Collections.Generic;
 
 
 
-public partial class ChurchillFrictionFactor : IFrictionFactor
-												,IFrictionFactorGetRe
+public partial class ChurchillFrictionFactor : 
+	IFrictionFactor ,IFrictionFactorGetRe
 {
 	// this particular implementation uses the churchill correlation
 	public double fanning(double ReynoldsNumber, double roughnessRatio){
@@ -197,5 +197,18 @@ public partial class ChurchillFrictionFactor : IFrictionFactor
 	public double roughnessRatio { get; private set; }
 	public double lengthToDiameter { get; private set; }
 	public double bejanNumber {get; private set; }
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
