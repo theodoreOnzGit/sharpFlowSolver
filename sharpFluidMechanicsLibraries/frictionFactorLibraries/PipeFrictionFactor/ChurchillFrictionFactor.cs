@@ -194,20 +194,8 @@ public partial class ChurchillFrictionFactor : IFrictionFactor
 
 
 
-	public double roughnessRatio;
-	public double lengthToDiameter;
-	public double bejanNumber;
-
-
-
-
-
-
-
-
-
-
-
-
+	public double roughnessRatio { get; private set; }
+	public double lengthToDiameter { get; private set; }
+	public double bejanNumber {get; private set; }
 }
 

@@ -12,10 +12,13 @@ have many ways of implementing the friction factor.
 Eg. Colebrook formula.
 
 
-## Thread Safety
+## Thread Safety Warning!
 
 Thread Safety is not tested nor guaranteed for this code. You
-have been warned.
+have been warned. It is not currently a goal of this code as of
+the time of writing this readme (Aug 2022). If you use it in 
+parallel processing, use at your own risk. Or at least supply
+a different copy of the library for each thread.
 
 # IFrictionFactor
 
