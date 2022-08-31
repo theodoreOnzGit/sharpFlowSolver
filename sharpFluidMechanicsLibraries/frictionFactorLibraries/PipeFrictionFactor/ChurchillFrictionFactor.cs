@@ -182,8 +182,48 @@ namespace sharpFluidMechanicsLibraries{
 						"Be too large");
 			// the above checks for all the relevant exceptions
 			// including formLossK < 0
+			//
+			// now we are ready to do root finding
+			//
+			// the underlying equation is 
+			// Be = 0.5*fLDK*Re^2
+
+			this.roughnessRatio = roughnessRatio;
+			this.lengthToDiameter = lengthToDiameter;
+			this.bejanNumber = Be_D;
+			this.formLossK = formLossK;
+
+			double pressureDropRoot(double Re){
+				// i'm solving for
+				// Be - 0.5*fLDK*Re^2 = 0 
+				// the fLDK term can be calculated using
+				// getBe
+				//
+				// now i don't really need the interpolation
+				// term in here because when Re = 0,
+				// Be = 0 in the getBe code.
+				// so really, no need for fancy interpolation.
+
+				double fLDKterm = this.getBe(Re,
+						this.roughnessRatio,
+						this.lengthToDiameter,
+						this.formLossK);
+
+				return this.bejanNumber - fLDKterm;
+
+			}
 			
 			double ReynoldsNumber = 0.0;
+			ReynoldsNumber = FindRoots.OfFunction(
+					pressureDropRoot, 0, 
+					maxRe);
+
+			// now i'll clean everything up
+			this.roughnessRatio = 0.0;
+			this.lengthToDiameter = 0.0;
+			this.bejanNumber = 0.0;
+			this.formLossK = 0.0;
+
 
 			if (isNegative)
 			{
@@ -191,7 +231,6 @@ namespace sharpFluidMechanicsLibraries{
 			}
 
 			return ReynoldsNumber;
-			throw new NotImplementedException();
 		}
 
 		// the following overload gets Re in case
@@ -338,6 +377,7 @@ namespace sharpFluidMechanicsLibraries{
 		public double roughnessRatio { get; private set; }
 		public double lengthToDiameter { get; private set; }
 		public double bejanNumber {get; private set; }
+		public double formLossK {get; private set; }
 
 		/***********************************************
 		 * The following methods do the backend logic
