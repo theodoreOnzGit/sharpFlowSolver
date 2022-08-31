@@ -834,4 +834,205 @@ public class FrictionFactorTests : testOutputHelper
 		Assert.Equal(referenceBe,resultBe);
 		throw new Exception("result unsatisfactory");
 	}
+
+	[Theory]
+	[InlineData(0.0,0.1)]
+	[InlineData(-1800.0,0.1)]
+	[InlineData(1800.0,-0.1)]
+	public void WhenWrapperDarcyUndesirableValueExpectException(
+			double Re,
+			double roughnessRatio){
+
+		// also the above values are visually inspected with respect to the graph
+		PipeFrictionFactor frictionFactorObj;
+		frictionFactorObj = new PipeFrictionFactor();
+
+		// Act
+
+		if(Re == 0.0){
+			Assert.Throws<DivideByZeroException>(
+					() => 
+					frictionFactorObj.
+					darcy(Re,roughnessRatio)
+					);
+			return;
+		}
+		if(Re < 0.0){
+			Assert.Throws<ArgumentOutOfRangeException>(
+					() => 
+					frictionFactorObj.
+					darcy(Re,roughnessRatio)
+					);
+			return;
+		}
+		if(roughnessRatio < 0.0){
+			Assert.Throws<ArgumentOutOfRangeException>(
+					() => 
+					frictionFactorObj.
+					darcy(Re,roughnessRatio)
+					);
+			return;
+		}
+
+		throw new Exception("exception not caught");
+	}
+	
+
+	[Theory]
+	[InlineData(0.0,0.1)]
+	[InlineData(-1800.0,0.1)]
+	[InlineData(1800.0,-0.1)]
+	public void WhenWrapperMoodyUndesirableValueExpectException(
+			double Re,
+			double roughnessRatio){
+
+		// also the above values are visually inspected with respect to the graph
+		PipeFrictionFactor frictionFactorObj;
+		frictionFactorObj = new PipeFrictionFactor();
+
+		// Act
+
+		if(Re == 0.0){
+			Assert.Throws<DivideByZeroException>(
+					() => 
+					frictionFactorObj.
+					moody(Re,roughnessRatio)
+					);
+			return;
+		}
+		if(Re < 0.0){
+			Assert.Throws<ArgumentOutOfRangeException>(
+					() => 
+					frictionFactorObj.
+					moody(Re,roughnessRatio)
+					);
+			return;
+		}
+		if(roughnessRatio < 0.0){
+			Assert.Throws<ArgumentOutOfRangeException>(
+					() => 
+					frictionFactorObj.
+					moody(Re,roughnessRatio)
+					);
+			return;
+		}
+
+		throw new Exception("exception not caught");
+	}
+
+	[Theory]
+	[InlineData(0.0,0.1)]
+	[InlineData(-1800.0,0.1)]
+	[InlineData(1800.0,-0.1)]
+	public void WhenWrapperFanningUndesirableValueExpectException(
+			double Re,
+			double roughnessRatio){
+
+		// also the above values are visually inspected with respect to the graph
+		PipeFrictionFactor frictionFactorObj;
+		frictionFactorObj = new PipeFrictionFactor();
+
+		// Act
+
+		if(Re == 0.0){
+			Assert.Throws<DivideByZeroException>(
+					() => 
+					frictionFactorObj.
+					fanning(Re,roughnessRatio)
+					);
+			return;
+		}
+		if(Re < 0.0){
+			Assert.Throws<ArgumentOutOfRangeException>(
+					() => 
+					frictionFactorObj.
+					fanning(Re,roughnessRatio)
+					);
+			return;
+		}
+		if(roughnessRatio < 0.0){
+			Assert.Throws<ArgumentOutOfRangeException>(
+					() => 
+					frictionFactorObj.
+					fanning(Re,roughnessRatio)
+					);
+			return;
+		}
+
+		throw new Exception("exception not caught");
+	}
+
+
+	[Theory]
+	[InlineData(0.0,0.1,10,10)]
+	[InlineData(-1800.0,0.1,10,10)]
+	[InlineData(1800.0,-0.1,10,10)]
+	[InlineData(1800.0,0.1,-10,10)]
+	[InlineData(1800.0,0.1,10,-10)]
+	[InlineData(1800.0,0.1,0,-10)]
+	public void WhenWrapperfLDKUndesirableValueExpectException(
+			double Re,
+			double roughnessRatio,
+			double lengthToDiameter,
+			double formLossCoefficientK){
+
+		// also the above values are visually inspected with respect to the graph
+		PipeFrictionFactor frictionFactorObj;
+		frictionFactorObj = new PipeFrictionFactor();
+
+		// Act
+
+		if(Re == 0.0){
+			Assert.Throws<DivideByZeroException>(
+					() => 
+					frictionFactorObj.
+					fLDK(Re,roughnessRatio,
+						lengthToDiameter,
+						formLossCoefficientK)
+					);
+			return;
+		}
+		if(Re < 0.0){
+			Assert.Throws<ArgumentOutOfRangeException>(
+					() => 
+					frictionFactorObj.
+					fLDK(Re,roughnessRatio,
+						lengthToDiameter,
+						formLossCoefficientK)
+					);
+			return;
+		}
+		if(roughnessRatio < 0.0){
+			Assert.Throws<ArgumentOutOfRangeException>(
+					() => 
+					frictionFactorObj.
+					fLDK(Re,roughnessRatio,
+						lengthToDiameter,
+						formLossCoefficientK)
+					);
+			return;
+		}
+		if(formLossCoefficientK < 0.0){
+			Assert.Throws<ArgumentOutOfRangeException>(
+					() => 
+					frictionFactorObj.
+					fLDK(Re,roughnessRatio,
+						lengthToDiameter,
+						formLossCoefficientK)
+					);
+			return;
+		}
+		if(lengthToDiameter <= 0.0){
+			Assert.Throws<ArgumentOutOfRangeException>(
+					() => 
+					frictionFactorObj.
+					fLDK(Re,roughnessRatio,
+						lengthToDiameter,
+						formLossCoefficientK)
+					);
+			return;
+		}
+
+		throw new Exception("exception not caught");
+	}
 }

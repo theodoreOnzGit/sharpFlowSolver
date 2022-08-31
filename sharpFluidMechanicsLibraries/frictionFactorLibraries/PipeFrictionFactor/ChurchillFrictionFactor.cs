@@ -23,21 +23,50 @@ namespace sharpFluidMechanicsLibraries{
 
 
 		// this particular implementation uses the churchill correlation
-		public double fanning(double ReynoldsNumber, double roughnessRatio){
+		public double fanning(double ReynoldsNumber, 
+				double roughnessRatio){
+
+			if(ReynoldsNumber == 0)
+				throw new DivideByZeroException("Re = 0");
+
+			if(ReynoldsNumber < 0)
+				throw new ArgumentOutOfRangeException("Re<0");
+			
+			if(roughnessRatio < 0)
+				throw new ArgumentOutOfRangeException("roughnessRatio<0");
 
 			double fanningFrictionFactor;
 			fanningFrictionFactor = 2 * Math.Pow(this.churchillInnerTerm(ReynoldsNumber,roughnessRatio), 1.0/12);
 			return fanningFrictionFactor;
 		}
 
-		public double moody(double ReynoldsNumber, double roughnessRatio){
+		public double moody(double ReynoldsNumber, 
+				double roughnessRatio){
 
 			// apparently the moody friciton factor is same as the darcy friction factor
+
+			if(ReynoldsNumber == 0)
+				throw new DivideByZeroException("Re = 0");
+
+			if(ReynoldsNumber < 0)
+				throw new ArgumentOutOfRangeException("Re<0");
+			
+			if(roughnessRatio < 0)
+				throw new ArgumentOutOfRangeException("roughnessRatio<0");
 
 			return this.darcy(ReynoldsNumber,roughnessRatio);
 		}
 
-		public double darcy(double ReynoldsNumber, double roughnessRatio){
+		public double darcy(double ReynoldsNumber, 
+				double roughnessRatio){
+			if(ReynoldsNumber == 0)
+				throw new DivideByZeroException("Re = 0");
+
+			if(ReynoldsNumber < 0)
+				throw new ArgumentOutOfRangeException("Re<0");
+			
+			if(roughnessRatio < 0)
+				throw new ArgumentOutOfRangeException("roughnessRatio<0");
 
 			// darcy friction factor is 4x fanning friction factor
 			// https://neutrium.net/fluid-flow/pressure-loss-in-pipe/
@@ -50,6 +79,23 @@ namespace sharpFluidMechanicsLibraries{
 				double roughnessRatio,
 				double lengthToDiameterRatio,
 				double K){
+			if(ReynoldsNumber == 0)
+				throw new DivideByZeroException();
+
+			if(ReynoldsNumber < 0)
+				throw new ArgumentOutOfRangeException();
+
+			if(roughnessRatio < 0)
+				throw new ArgumentOutOfRangeException("roughnessRatio<0");
+
+			if(lengthToDiameterRatio <= 0)
+				throw new ArgumentOutOfRangeException(
+						"lengthToDiameterRatio<=0");
+
+			if(K < 0)
+				throw new ArgumentOutOfRangeException(
+						"Form loss coefficient K < 0");
+
 			double fLDK;
 			double f = this.darcy(ReynoldsNumber,
 					roughnessRatio);
