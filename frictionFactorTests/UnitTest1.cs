@@ -1138,7 +1138,7 @@ public class FrictionFactorTests : testOutputHelper
 	[InlineData(-4e6, 0.001, 0.019714092419925, 8.9)]
 	[InlineData(-4e5, 0.01, 0.038055838413508, 50.0)]
 	[InlineData(-4e4, 0.03,  0.057933060738478, 1.0e5)]
-	public void WhenNegativeBeShouldGetAccurateReTurbulent(
+	public void WhenNegativeBeShouldGetAccurateReNoFormLoss(
 			double Re,
 			double roughnessRatio, 
 			double referenceDarcyFrictionFactor,
@@ -1203,4 +1203,98 @@ public class FrictionFactorTests : testOutputHelper
 
 	}
 
+	// the following
+	// tests for throwing exception 
+	// under
+	// (1) L/D < 0
+	// (2) L/D = 0
+	// (3) Re > 1e12 (too large Re for solver)
+	// (4) roughness ratio <0
+	// (5) K < 0
+
+	[Theory]
+	[InlineData(0.0,0.1,-10, 0.0)]
+	[InlineData(0.0,0.1,0, 0.0)]
+	[InlineData(1e13,0.1,10, 0.0)] 
+	[InlineData(5000,-0.1,10, 0.0)] 
+	[InlineData(5000,0.1,10, -0.1)] 
+	public void WhengetReFormLossUndesirableValueExpectException(
+			double Re,
+			double roughnessRatio,
+			double lengthToDiameter,
+			double formLossK){
+
+		// Setup
+		// also the above values are visually inspected with respect to the graph
+		IPipeReAndBe frictionFactorObj;
+		frictionFactorObj = new ChurchillFrictionFactor();
+
+		// let's calculate Be manually first:
+		// so we have a value to subtitute in
+		double Be_D;
+		if(roughnessRatio >= 0){
+			Be_D = frictionFactorObj.
+				getBe(Re,roughnessRatio,lengthToDiameter,
+						0.0);
+		}else{
+			// if roughnesssRatio <0,
+			// getBe throws an exception,
+			// i want to test if 
+			Be_D = 500;
+		}
+		double Be_L = Be_D*
+			Math.Pow(lengthToDiameter, 2.0);
+
+		double maxRe = 1e12;
+
+
+		// Assert
+
+		if(roughnessRatio < 0.0){
+			Assert.Throws<ArgumentOutOfRangeException>(
+					() => 
+					frictionFactorObj.
+					getRe(Be_L,
+						roughnessRatio,
+						lengthToDiameter,
+						formLossK)
+					);
+			return;
+		}
+		if(lengthToDiameter <= 0.0){
+			Assert.Throws<ArgumentOutOfRangeException>(
+					() => 
+					frictionFactorObj.
+					getRe(Be_L,
+						roughnessRatio,
+						lengthToDiameter,
+						formLossK)
+					);
+			return;
+		}
+		if(Re >= maxRe){
+			Assert.Throws<ArgumentOutOfRangeException>(
+					() => 
+					frictionFactorObj.
+					getRe(Be_L,
+						roughnessRatio,
+						lengthToDiameter,
+						formLossK)
+					);
+			return;
+		}
+		if(formLossK < 0){
+			Assert.Throws<ArgumentOutOfRangeException>(
+					() => 
+					frictionFactorObj.
+					getRe(Be_L,
+						roughnessRatio,
+						lengthToDiameter,
+						formLossK)
+					);
+			return;
+		}
+
+		throw new Exception("exception not caught");
+	}
 }
