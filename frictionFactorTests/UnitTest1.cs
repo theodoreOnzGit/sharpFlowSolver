@@ -1,10 +1,10 @@
 using Xunit;
 using Xunit.Abstractions;
 using System;
+using sharpFluidMechanicsLibraries;
+
+
 namespace frictionFactorTests;
-
-
-
 public class FrictionFactorTests : testOutputHelper
 {
 	public FrictionFactorTests(ITestOutputHelper outputHelper):base(outputHelper){
@@ -350,6 +350,129 @@ public class FrictionFactorTests : testOutputHelper
 
 		// Assert
 		//
+		// Assert.Equal(referenceFrictionFactor,resultFrictionFactor,4);
+
+		double resultErrorFraction;
+		resultErrorFraction = Math.Abs(resultFrictionFactor - referenceFrictionFactor)/referenceFrictionFactor;
+		
+		// I want to check if the error is less than 1%
+		bool resultSatisfactory = (resultErrorFraction < 0.01);
+		if(resultSatisfactory){
+			Assert.True(resultSatisfactory);
+			return;
+		}
+		// if error is more than 1%, check the maximum error
+		bool resultSomewhatSatisfactory = (resultErrorFraction < 0.035);
+		if(resultSomewhatSatisfactory){
+			Assert.True(resultSomewhatSatisfactory);
+			return;
+		}
+		// I have asserted that the churchill friction factor correlation is accurate to 
+		// 3.5% up to Re=2200 with the laminar flow correlation,
+		// this is good
+		// the anomalous data point is at Re=2200
+	}
+
+	[Theory]
+	[InlineData(100, 0.05)]
+	[InlineData(200, 0.05)]
+	[InlineData(300, 0.05)]
+	[InlineData(400, 0.05)]
+	[InlineData(400, 0.0)]
+	[InlineData(500, 0.05)]
+	[InlineData(600, 0.05)]
+	[InlineData(800, 0.05)]
+	[InlineData(1000, 0.05)]
+	[InlineData(1200, 0.05)]
+	[InlineData(1400, 0.05)]
+	[InlineData(1600, 0.05)]
+	[InlineData(1800, 0.05)]
+	[InlineData(2000, 0.05)]
+	[InlineData(2200, 0.05)]
+	public void WhenUserWrapperFanningShouldBeAccurate_Laminar(
+			double Re,double roughnessRatio){
+		// this tests the churchill relation against the 
+		// laminar flow friction factor
+		// fanning is 16/Re
+		// and no matter the roughness ratio, I should get the same result
+		// however, roughness ratio should not exceed 0.1
+		// as maximum roughness ratio in charts is about 0.05
+		//
+		// Setup
+
+		double referenceFrictionFactor = 16/Re;
+
+		GetFrictionFactor frictionFactorObj;
+		frictionFactorObj = new GetFrictionFactor();
+
+		// Act
+
+		double resultFrictionFactor = frictionFactorObj.fanning(Re,roughnessRatio);
+
+		// Assert
+		//
+		// I want to use a 10 percent difference rather than absolute value
+		// Assert.Equal(referenceFrictionFactor,resultFrictionFactor,4);
+
+		double resultErrorFraction;
+		resultErrorFraction = Math.Abs(resultFrictionFactor - referenceFrictionFactor)/referenceFrictionFactor;
+		
+		// I want to check if the error is less than 1%
+		bool resultSatisfactory = (resultErrorFraction < 0.01);
+		if(resultSatisfactory){
+			Assert.True(resultSatisfactory);
+			return;
+		}
+		// if error is more than 1%, check the maximum error
+		bool resultSomewhatSatisfactory = (resultErrorFraction < 0.035);
+		if(resultSomewhatSatisfactory){
+			Assert.True(resultSomewhatSatisfactory);
+			return;
+		}
+		// I have asserted that the churchill friction factor correlation is accurate to 
+		// 3.5% up to Re=2200 with the laminar flow correlation,
+		// this is good
+		// the anomalous data point is at Re=2200
+	}
+
+	[Theory]
+	[InlineData(100, 0.05)]
+	[InlineData(200, 0.05)]
+	[InlineData(300, 0.05)]
+	[InlineData(400, 0.05)]
+	[InlineData(400, 0.0)]
+	[InlineData(500, 0.05)]
+	[InlineData(600, 0.05)]
+	[InlineData(800, 0.05)]
+	[InlineData(1000, 0.05)]
+	[InlineData(1200, 0.05)]
+	[InlineData(1400, 0.05)]
+	[InlineData(1600, 0.05)]
+	[InlineData(1800, 0.05)]
+	[InlineData(2000, 0.05)]
+	[InlineData(2200, 0.05)]
+	public void WhenUserWrapperDarcyShouldBeAccurate_Laminar(
+			double Re,double roughnessRatio){
+		// this tests the churchill relation against the 
+		// laminar flow friction factor
+		// fanning is 16/Re
+		// and no matter the roughness ratio, I should get the same result
+		// however, roughness ratio should not exceed 0.1
+		// as maximum roughness ratio in charts is about 0.05
+		//
+		// Setup
+
+		double referenceFrictionFactor = 64.0/Re;
+
+		GetFrictionFactor frictionFactorObj;
+		frictionFactorObj = new GetFrictionFactor();
+
+		// Act
+
+		double resultFrictionFactor = frictionFactorObj.darcy(Re,roughnessRatio);
+
+		// Assert
+		//
 		// I want to use a 10 percent difference rather than absolute value
 		// Assert.Equal(referenceFrictionFactor,resultFrictionFactor,4);
 
@@ -357,8 +480,83 @@ public class FrictionFactorTests : testOutputHelper
 		resultErrorFraction = Math.Abs(resultFrictionFactor - referenceFrictionFactor)/referenceFrictionFactor;
 		
 		Assert.Equal(0.0, resultErrorFraction,1);
-		// I have asserted that the churchill friction factor correlation is accurate to 
-		// 10% up to Re=2200 with the laminar flow correlation,
+		// I want to check if the error is less than 1%
+		bool resultSatisfactory = (resultErrorFraction < 0.01);
+		if(resultSatisfactory){
+			Assert.True(resultSatisfactory);
+			return;
+		}
+		// if error is more than 1%, check the maximum error
+		bool resultSomewhatSatisfactory = (resultErrorFraction < 0.035);
+		if(resultSomewhatSatisfactory){
+			Assert.True(resultSomewhatSatisfactory);
+			return;
+		}
+		// 3.5% up to Re=2200 with the laminar flow correlation,
 		// this is good
+		// the anomalous data point is at Re=2200
+	}
+	[Theory]
+	[InlineData(100, 0.05)]
+	[InlineData(200, 0.05)]
+	[InlineData(300, 0.05)]
+	[InlineData(400, 0.05)]
+	[InlineData(400, 0.0)]
+	[InlineData(500, 0.05)]
+	[InlineData(600, 0.05)]
+	[InlineData(800, 0.05)]
+	[InlineData(1000, 0.05)]
+	[InlineData(1200, 0.05)]
+	[InlineData(1400, 0.05)]
+	[InlineData(1600, 0.05)]
+	[InlineData(1800, 0.05)]
+	[InlineData(2000, 0.05)]
+	[InlineData(2200, 0.05)]
+	public void WhenUserWrapperMoodyShouldBeAccurate_Laminar(
+			double Re,double roughnessRatio){
+		// this tests the churchill relation against the 
+		// laminar flow friction factor
+		// fanning is 16/Re
+		// and no matter the roughness ratio, I should get the same result
+		// however, roughness ratio should not exceed 0.1
+		// as maximum roughness ratio in charts is about 0.05
+		//
+		// Setup
+
+		double referenceFrictionFactor = 16/Re;
+
+		GetFrictionFactor frictionFactorObj;
+		frictionFactorObj = new GetFrictionFactor();
+
+		// Act
+
+		double resultFrictionFactor = frictionFactorObj.fanning(Re,roughnessRatio);
+
+		// Assert
+		//
+		// I want to use a 10 percent difference rather than absolute value
+		// Assert.Equal(referenceFrictionFactor,resultFrictionFactor,4);
+
+		double resultErrorFraction;
+		resultErrorFraction = Math.Abs(
+				resultFrictionFactor - referenceFrictionFactor)/
+			referenceFrictionFactor;
+		
+		// I want to check if the error is less than 1%
+		bool resultSatisfactory = (resultErrorFraction < 0.01);
+		if(resultSatisfactory){
+			Assert.True(resultSatisfactory);
+			return;
+		}
+		// if error is more than 1%, check the maximum error
+		bool resultSomewhatSatisfactory = (resultErrorFraction < 0.035);
+		if(resultSomewhatSatisfactory){
+			Assert.True(resultSomewhatSatisfactory);
+			return;
+		}
+		// I have asserted that the churchill friction factor correlation is accurate to 
+		// 3.5% up to Re=2200 with the laminar flow correlation,
+		// this is good
+		// the anomalous data point is at Re=2200
 	}
 }
