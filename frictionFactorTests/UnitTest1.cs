@@ -1915,4 +1915,171 @@ public class FrictionFactorTests : testOutputHelper
 
 
 	}
+
+
+
+	// this tests whether laminar and very low Re values can be accurately
+	// predicted using the getRe function
+	// in churchillFrictionFactor
+	//
+	[Theory]
+	[InlineData(1e-27, 0.05, 123, 20.0)]
+	[InlineData(1e-9, 0.05, 123, 28.7)]
+	[InlineData(1e-8, 0.05, 123, 28.7)]
+	[InlineData(1e-7, 0.05, 123, 28.7)]
+	[InlineData(1e-6, 0.05, 123, 28.7)]
+	[InlineData(1e-5, 0.05, 123, 28.7)]
+	[InlineData(1e-4, 0.05, 123, 28.7)]
+	[InlineData(1e-3, 0.05, 123, 28.7)]
+	[InlineData(0.1, 0.05, 1002, 28.73)]
+	[InlineData(1, 0.05, 120, 28.703)]
+	[InlineData(10, 0.05, 1, 28.7230)]
+	[InlineData(100, 0.05, 12, 28.73)]
+	[InlineData(200, 0.05, 4, 328.756)]
+	[InlineData(300, 0.05, 1.23, 238.7)]
+	[InlineData(400, 0.05, 3.56, 283.7)]
+	[InlineData(400, 0.0, 12.3, 28.37)]
+	[InlineData(500, 0.05, 4.56, 28.73)]
+	[InlineData(600, 0.05, 7.89, 228.7)]
+	[InlineData(800, 0.05, 78.0, 28.27)]
+	[InlineData(1000, 0.05, 20.0, 28.72)]
+	[InlineData(1200, 0.05, 12.87, 128.7)]
+	[InlineData(1400, 0.05, 4.55, 281.7)]
+	[InlineData(1600, 0.05, 9.81, 218.7)]
+	[InlineData(1800, 0.05, 3.14, 28.71)]
+	[InlineData(2000, 0.05, 8.99, 28.17)]
+	public void WhenChurchillGetReErrorNotMoreThan2Percent_Laminar(
+			double Re, double roughnessRatio, double formLossK,
+			double lengthToDiameter){
+		// this tests the churchill relation against the 
+		// laminar flow friction factor
+		// fanning is 16/Re
+		// and no matter the roughness ratio, I should get the same result
+		// however, roughness ratio should not exceed 0.1
+		// as maximum roughness ratio in charts is about 0.05
+		//
+		// Setup
+
+		// this test asserts that the error should not be more than 2%
+
+		double reference_fLDK = 4.0*lengthToDiameter*16.0/Re+formLossK;
+		double referenceBe = 0.5*(reference_fLDK)*
+				Math.Pow(Re,2.0);
+
+		IPipeReAndBe frictionFactorObj;
+		frictionFactorObj = new ChurchillFrictionFactor();
+
+		double errorMax = 0.02;
+
+		// Act
+
+		double resultRe = frictionFactorObj.getRe(
+				referenceBe,
+				roughnessRatio,
+				lengthToDiameter,
+				formLossK);
+
+
+
+
+
+		// Assert
+		//
+
+		double error;
+		error = Math.Abs(resultRe - Re)/Re;
+		
+		if(error<errorMax){
+			Assert.True(error < errorMax);
+			return;
+		}
+		// for the root finder code, i can only guess Re up to values
+		// of 1e-8
+		// tbh that's fine because it's well within instrument error.
+		Assert.Equal(Re,resultRe,8);
+	}
+
+	// this tests whether laminar and very low Re values can be accurately
+	// predicted using the getRe function
+	// in churchillFrictionFactor
+	// for negative values
+	//
+	[Theory]
+	[InlineData(-1e-27, 0.05, 123, 20.0)]
+	[InlineData(-1e-9, 0.05, 123, 28.7)]
+	[InlineData(-1e-8, 0.05, 123, 28.7)]
+	[InlineData(-1e-7, 0.05, 123, 28.7)]
+	[InlineData(-1e-6, 0.05, 123, 28.7)]
+	[InlineData(-1e-5, 0.05, 123, 28.7)]
+	[InlineData(-1e-4, 0.05, 123, 28.7)]
+	[InlineData(-1e-3, 0.05, 123, 28.7)]
+	[InlineData(-0.1, 0.05, 1002, 28.73)]
+	[InlineData(-1, 0.05, 120, 28.703)]
+	[InlineData(-10, 0.05, 1, 28.7230)]
+	[InlineData(-100, 0.05, 12, 28.73)]
+	[InlineData(-200, 0.05, 4, 328.756)]
+	[InlineData(-300, 0.05, 1.23, 238.7)]
+	[InlineData(-400, 0.05, 3.56, 283.7)]
+	[InlineData(-400, 0.0, 12.3, 28.37)]
+	[InlineData(-500, 0.05, 4.56, 28.73)]
+	[InlineData(-600, 0.05, 7.89, 228.7)]
+	[InlineData(-800, 0.05, 78.0, 28.27)]
+	[InlineData(-1000, 0.05, 20.0, 28.72)]
+	[InlineData(-1200, 0.05, 12.87, 128.7)]
+	[InlineData(-1400, 0.05, 4.55, 281.7)]
+	[InlineData(-1600, 0.05, 9.81, 218.7)]
+	[InlineData(-1800, 0.05, 3.14, 28.71)]
+	[InlineData(-2000, 0.05, 8.99, 28.17)]
+	public void WhenChurchillGetReErrorNotMoreThan2Percent_LaminarNegative(
+			double Re, double roughnessRatio, double formLossK,
+			double lengthToDiameter){
+		// this tests the churchill relation against the 
+		// laminar flow friction factor
+		// fanning is 16/Re
+		// and no matter the roughness ratio, I should get the same result
+		// however, roughness ratio should not exceed 0.1
+		// as maximum roughness ratio in charts is about 0.05
+		//
+		// Setup
+
+		// this test asserts that the error should not be more than 2%
+
+		double reference_fLDK = 4.0*lengthToDiameter*
+			16.0/Math.Abs(Re)+
+			formLossK;
+		double referenceBe = -0.5*(reference_fLDK)*
+				Math.Pow(Re,2.0);
+
+		IPipeReAndBe frictionFactorObj;
+		frictionFactorObj = new ChurchillFrictionFactor();
+
+		double errorMax = 0.02;
+
+		// Act
+
+		double resultRe = frictionFactorObj.getRe(
+				referenceBe,
+				roughnessRatio,
+				lengthToDiameter,
+				formLossK);
+
+
+
+
+
+		// Assert
+		//
+
+		double error;
+		error = Math.Abs(resultRe - Re)/Math.Abs(Re);
+		
+		if(error<errorMax){
+			Assert.True(error < errorMax);
+			return;
+		}
+		// for the root finder code, i can only guess Re up to values
+		// of 1e-8
+		// tbh that's fine because it's well within instrument error.
+		Assert.Equal(Re,resultRe,8);
+	}
 }

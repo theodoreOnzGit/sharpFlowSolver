@@ -120,6 +120,35 @@ namespace sharpFluidMechanicsLibraries{
 			if(ReynoldsNumber == 0)
 				return 0.0;
 
+			// i'm including an improvement for Re<1800
+			// so that we linearly interpolate the churchill
+			// friction factor from 1800 onwards
+			// basically, we are interpolating
+			// f_{darcy}*Re^2  = 64Re
+			// at lower Re values to increase accuracy and save computation
+			// cost
+			if(ReynoldsNumber <1800){
+				double ReTransition = 1800.0;
+				IInterpolation _linear_f_ReSq;
+
+				IList<double> xValues = new List<double>();
+				IList<double> yValues = new List<double>();
+				xValues.Add(0.0);
+				xValues.Add(ReTransition);
+
+				yValues.Add(0.0);
+				yValues.Add(64.0*ReTransition);
+
+				_linear_f_ReSq = Interpolate.Linear(xValues,yValues);
+				double fLDReSq = _linear_f_ReSq.Interpolate(
+						ReynoldsNumber)*lengthToDiameterRatio;
+
+				double kReSq = K*Math.Pow(ReynoldsNumber,2.0);
+				
+				return 0.5*(kReSq + fLDReSq);
+
+			}
+
 			double fLDK;
 			double f = this.darcy(ReynoldsNumber,
 					roughnessRatio);
