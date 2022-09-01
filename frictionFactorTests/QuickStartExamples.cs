@@ -328,4 +328,149 @@ public partial class FrictionFactorTests : testOutputHelper
 
 
 	}
+
+	[Fact]
+	public void ObtainMassFlowrateFromPressureLoss(){
+
+		// Here's the tedious part; getting all the relevant information
+		Pressure pressureLoss = new Pressure(
+				50, PressureUnit.Pascal);
+
+		Area crossSectionalArea = new Area(
+				2.88e-4, AreaUnit.SI);
+
+		Length hydraulicDiameter = crossSectionalArea.Sqrt()*2.0/
+			Math.Pow(Math.PI,0.5);
+
+		DynamicViscosity fluidViscosity = new
+			DynamicViscosity(1.05e-3, DynamicViscosityUnit.PascalSecond);
+
+		double roughnessRatio = 0.005;
+
+		Length pipeLength = new Length(0.5, LengthUnit.SI);
+
+
+		double formLossK = 5.55;
+
+		Density fluidDensity = new Density(1000, 
+				DensityUnit.SI);
+
+		double lengthToDiameterRatio = pipeLength/hydraulicDiameter;
+		
+		// Step 2: intitate the pipeLossObject
+
+		PipePressureLossAndMassFlowrate pipeLossObject =
+			new PipePressureLossAndMassFlowrate();
+
+		// Step3: calculate mass flowrate
+
+		MassFlow resultMassFlow = pipeLossObject.getMassFlow(pressureLoss,
+						crossSectionalArea,
+						hydraulicDiameter,
+						fluidViscosity,
+						fluidDensity,
+						pipeLength,
+						roughnessRatio,
+						formLossK);
+
+	}
+
+	[Fact]
+	public void ObtainMassFlowrateFromPressureLossNoFormLossSmoothPipe(){
+
+		// you also have the option of NOT supplying any form losses
+		// or roughness ratio
+		// in that case, K = 0 and smooth pipe is assumed
+		
+		// Here's the tedious part; getting all the relevant information
+		Pressure pressureLoss = new Pressure(
+				50, PressureUnit.Pascal);
+
+		Area crossSectionalArea = new Area(
+				2.88e-4, AreaUnit.SI);
+
+		Length hydraulicDiameter = crossSectionalArea.Sqrt()*2.0/
+			Math.Pow(Math.PI,0.5);
+
+		DynamicViscosity fluidViscosity = new
+			DynamicViscosity(1.05e-3, DynamicViscosityUnit.PascalSecond);
+
+
+		Length pipeLength = new Length(0.5, LengthUnit.SI);
+
+
+		Density fluidDensity = new Density(1000, 
+				DensityUnit.SI);
+
+		double lengthToDiameterRatio = pipeLength/hydraulicDiameter;
+		
+		// Step 2: intitate the pipeLossObject
+
+		PipePressureLossAndMassFlowrate pipeLossObject =
+			new PipePressureLossAndMassFlowrate();
+
+		// Step3: calculate mass flowrate
+
+		MassFlow resultMassFlow = pipeLossObject.getMassFlow(pressureLoss,
+						crossSectionalArea,
+						hydraulicDiameter,
+						fluidViscosity,
+						fluidDensity,
+						pipeLength);
+
+		
+
+	}
+
+	[Fact]
+	public void ObtainPressureLossFromMassFlow(){
+
+
+		// Step 1: obtain pipe parameters:
+		MassFlow fluidMassFlowrate = new MassFlow(
+				0.15, MassFlowUnit.KilogramPerSecond);
+
+		Area crossSectionalArea = new Area(
+				2.88e-4, AreaUnit.SI);
+
+		Length hydraulicDiameter = crossSectionalArea.Sqrt()*2.0/
+			Math.Pow(Math.PI,0.5);
+
+		DynamicViscosity fluidViscosity = new
+			DynamicViscosity(1.05e-3, DynamicViscosityUnit.PascalSecond);
+
+		double roughnessRatio = 0.005;
+
+		Length pipeLength = new Length(0.5, LengthUnit.SI);
+
+
+		double formLossK = 5.55;
+
+		Density fluidDensity = new Density(1000, 
+				DensityUnit.SI);
+
+		double lengthToDiameterRatio = pipeLength/hydraulicDiameter;
+
+		
+		// Step 2: now let's initiate our pipeloss object
+
+		PipePressureLossAndMassFlowrate pipeLossObject =
+			new PipePressureLossAndMassFlowrate();
+
+		// Step 3: calculate pressure loss
+
+		Pressure resultPressureLoss = 
+			pipeLossObject.getPressureLoss(fluidMassFlowrate,
+						crossSectionalArea,
+						hydraulicDiameter,
+						fluidViscosity,
+						fluidDensity,
+						pipeLength,
+						roughnessRatio,
+						formLossK);
+
+
+
+
+	}
 }
