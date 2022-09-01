@@ -32,4 +32,29 @@ namespace sharpFluidMechanicsLibraries{
 				double formLossK);
 
 	}
+
+	public interface IPipeMassFlowAndPressureLossTilted :
+		IPipeMassFlowAndPressureLoss{
+
+		MassFlow getMassFlow(Pressure pressureLoss,
+				Area crossSectionalArea,
+				Length hydraulicDiameter,
+				DynamicViscosity fluidViscosity,
+				Density fluidDensity,
+				Length pipeLength,
+				Angle inclineAngle,
+				double roughnessRatio,
+				double formLossK);
+
+		Pressure getPressureChange(MassFlow fluidMassFlowrate,
+				Area crossSectionalArea,
+				Length hydraulicDiameter,
+				DynamicViscosity fluidViscosity,
+				Density fluidDensity,
+				Length pipeLength,
+				Angle inclineAngle,
+				double roughnessRatio,
+				double formLossK);
+		}
+
 }

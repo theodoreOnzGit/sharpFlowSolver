@@ -12,7 +12,8 @@ using EngineeringUnits.Units;
 namespace sharpFluidMechanicsLibraries{
 
 	public partial class PipeMassFlowAndPressureLossDefaultImplementation :
-		IPipeMassFlowAndPressureLoss
+		IPipeMassFlowAndPressureLoss,
+		IPipeMassFlowAndPressureLossTilted
 	{
 
 
@@ -31,6 +32,7 @@ namespace sharpFluidMechanicsLibraries{
 				Length pipeLength,
 				double roughnessRatio,
 				double formLossK){
+
 			// let's first initiate the nondimensionalPipeObj
 			// and also our objects to nondimensionalise fluid mass flowrate
 			PipeReAndBe nondimensionalPipeObj = 
@@ -42,6 +44,18 @@ namespace sharpFluidMechanicsLibraries{
 			PipeBejanNumber pipeBeObject = 
 				new PipeBejanNumber();
 
+			// now before i calculate Re, i want to make sure that
+			// reverse flow is accounted for
+			// this is true when fluidMassFlowrate is less than 0
+			bool reverseFlow = (fluidMassFlowrate.As(
+						MassFlowUnit.KilogramPerSecond) < 0.0);
+
+			// so if i have reverse flow, i will make the fluidMassFlowrate
+			// positive
+			// and return the negative value
+			// of pressureLoss
+			if(reverseFlow)
+				fluidMassFlowrate *= -1;
 
 			// and let's get the Re and L/D
 			double Re = pipeReObject.getRe(fluidMassFlowrate,
@@ -67,6 +81,12 @@ namespace sharpFluidMechanicsLibraries{
 					hydraulicDiameter,
 					fluidDensity,
 					fluidViscosity);
+
+
+			// now before i exit, i want to make sure reverse flow is taken care
+			// of
+			if(reverseFlow)
+				return pressureLoss * -1.0;
 
 			return pressureLoss;
 		}
@@ -118,6 +138,113 @@ namespace sharpFluidMechanicsLibraries{
 			return fluidMassFlowrate;
 
 		}
+
+		public MassFlow getMassFlow(Pressure pressureChange,
+				Area crossSectionalArea,
+				Length hydraulicDiameter,
+				DynamicViscosity fluidViscosity,
+				Density fluidDensity,
+				Length pipeLength,
+				Angle inclineAngle,
+				double roughnessRatio,
+				double formLossK){
+
+			// note: for validation, i'm not going to check the incline Angle 
+			// values,
+			// they can be positive or negative and at any value the user
+			// specifies.
+			// the math is taken care of in the sine part
+
+			// the formula here for pressure change is:
+			//
+			// pressure change  = - pressureloss + hydrostaticPressure
+			// + sourcePressure (eg. pump)
+
+			Length heightChange = pipeLength * Math.Sin(inclineAngle.As(
+						AngleUnit.Radian));
+
+			// for gravity i'll use 9.81 m/s^2 as my constant.
+
+			Acceleration earthAcceleration9_81 =
+				new Acceleration(9.81, AccelerationUnit.MeterPerSecondSquared);
+
+			Pressure hydrostaticPressureChange = fluidDensity*
+				earthAcceleration9_81*
+				heightChange;
+
+			Pressure pressureLoss = hydrostaticPressureChange - pressureChange;
+
+			MassFlow fluidMassFlowrate = this.getMassFlow(pressureLoss,
+					crossSectionalArea,
+					hydraulicDiameter,
+					fluidViscosity,
+					fluidDensity,
+					pipeLength,
+					roughnessRatio,
+					formLossK);
+
+
+			return fluidMassFlowrate;
+
+		}
+
+		public Pressure getPressureChange(MassFlow fluidMassFlowrate,
+				Area crossSectionalArea,
+				Length hydraulicDiameter,
+				DynamicViscosity fluidViscosity,
+				Density fluidDensity,
+				Length pipeLength,
+				Angle inclineAngle,
+				double roughnessRatio,
+				double formLossK){
+			// note: for validation, i'm not going to check the incline Angle 
+			// values,
+			// they can be positive or negative and at any value the user
+			// specifies.
+			// the math is taken care of in the sine part
+
+			// Math.Abs(pressure loss) 
+			// = pressure change - hydrostaticPressureChange
+
+			Length heightChange = pipeLength * Math.Sin(inclineAngle.As(
+						AngleUnit.Radian));
+
+			// for gravity i'll use 9.81 m/s^2 as my constant.
+
+			Acceleration earthAcceleration9_81 =
+				new Acceleration(9.81, AccelerationUnit.MeterPerSecondSquared);
+
+			Pressure hydrostaticPressureChange = fluidDensity*
+				earthAcceleration9_81*
+				heightChange;
+
+			// now let's get the pressure loss term
+
+			Pressure pressureLoss = this.getPressureLoss(
+					fluidMassFlowrate,
+					crossSectionalArea,
+					hydraulicDiameter,
+					fluidViscosity,
+					fluidDensity,
+					pipeLength,
+					roughnessRatio,
+					formLossK);
+
+			// the formula here for pressure change is:
+			//
+			// pressure change  = - pressureloss + hydrostaticPressure
+			// + sourcePressure (eg. pump)
+
+			return hydrostaticPressureChange - pressureLoss;
+		}
+
+
+
+
+
+
+
+
 
 	}
 }
