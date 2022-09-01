@@ -215,6 +215,7 @@ public double moody(double ReynoldsNumber, double roughnessRatio){
 	return this.darcy(ReynoldsNumber,roughnessRatio);
 }
 ```
+
 ## Usage 
 
 Just instantiate the object and use the fanning friction factor term
@@ -233,8 +234,35 @@ Also, when Re is negative, or flow is perhaps reversed, the equation
 will also not make any sense. Thus we must be careful to watch out
 when using this equation for zero flow or reverse flow.
 
-# finding Re from pressure drop (nondimensional pressure drop Be)
+### Exception handling for invalid values
+To sort this issue out, i'll make sure the code lets you 
+know that invalid values are given.
 
+Also a roughnessRatio less than zero also doesn't make physical sense.
+
+I'll also ensure the code throws an exception to let you know that's the case.
+
+```csharp
+public double darcy(double ReynoldsNumber, 
+		double roughnessRatio){
+	if(ReynoldsNumber == 0)
+		throw new DivideByZeroException("Re = 0");
+
+	if(ReynoldsNumber < 0)
+		throw new ArgumentOutOfRangeException("Re<0");
+	
+	if(roughnessRatio < 0)
+		throw new ArgumentOutOfRangeException("roughnessRatio<0");
+
+	// darcy friction factor is 4x fanning friction factor
+	// https://neutrium.net/fluid-flow/pressure-loss-in-pipe/
+	double darcyFrictionFactor;
+	darcyFrictionFactor = 4 * this.fanning(ReynoldsNumber,roughnessRatio);
+	return darcyFrictionFactor;
+}
+```
+
+# finding Re from pressure drop (nondimensional pressure drop Be)
 Now in finding our friction factor from Reynold's number, it is
 a relatively simple affair when we calculate churchill friction 
 factor. Nevertheless, if we wanted to find the mass flowrate, 
@@ -247,10 +275,191 @@ Therefore, in practice, it is better to supply a pressure loss
 term, or pressure drop term, or the nondimensionalised equivalent
 to solve for an explicit value of Re.
 
+## getBe and fLDK
 
 For pressure drop, we have the explicit correlation
-$$f_{fanning}(Re,\frac{\varepsilon}{D})* Re^2 = \frac{32 Be}{ (\frac{4L}{D})^3 
+$$f_{fanning}(Re,\frac{\varepsilon}{D})* Re^2 = \frac{32 Be_L}{ (\frac{4L}{D})^3 
 }$$
+
+This is derived via nondimensionalising the Darcy Weisbach equation
+[(Turgut et al., 2014)](#turgut2014):
+
+$$f_{fanning} \frac{4L}{D} \  \frac{1}{2} \rho u^2 = \Delta P_{loss}$$
+$$f_{darcy} \frac{L}{D} \  \frac{1}{2} \rho u^2 = \Delta P_{loss}$$
+
+I note here the $\Delta P_{losses}$ is referring to pressure losses.
+
+However, when it comes to writing code, we may not wish to leave it
+in dimensional form as it is very easy to make mistakes with units.
+
+If we nondimensionalise the pressure loss terms and velocities, we
+may avoid such unit based errors within the code. 
+
+We shall conveniently nondimensionalise velocity using Re,
+
+$$Re = \frac{u D_H \rho}{\mu}$$
+
+And this results in:
+
+$$f_{fanning}  Re^2 = \frac{\Delta P_{loss}}{ (\frac{4L}{D}) \  
+\frac{1}{2} \rho (\frac{ \mu}{\rho D})^2 }$$
+To nondimensionalise the pressure loss terms,
+The [Bejan Number](https://www.sciencedirect.com/science/article/abs/pii/S0735193321000075)
+[(Zimparov et al., 2021)](#zimparov2021)
+is a number that represents a sort of dimensionless pressure drop.
+
+It was originally derived for heat transfer, but can just 
+as easily apply for fluid mechanics.
+
+For heat transfer, it is defined as:
+
+$$Be_L = \frac{\Delta P L^2 }{\mu \alpha }$$
+
+
+For our case:
+$$Be_L = \frac{\Delta P_{loss} L^2}{\nu^2\rho} $$
+$$Be_L = \frac{\Delta P_{loss} L^2 \rho}{\mu^2} $$
+
+Subtituting this definition of the Bejan number results in:
+
+$$f_{fanning}(Re,\frac{\varepsilon}{D})* Re^2 = \frac{32 Be_L}{ (\frac{4L}{D})^3 
+}$$
+
+Now this is okay for pipes without any form losses. But for pipes with
+form losses, there is an extra K term which may appear inside:
+
+$$(f_{darcy} \frac{L}{D} +K)  \frac{1}{2} \rho u^2 = \Delta P_{loss}$$
+
+Therefore i have taken the liberty to redefine the Bejan number so that
+it can fit our case:
+
+$$Be_D = \frac{\Delta P_{loss} D^2}{\nu^2\rho} $$
+
+With this, we can nondimensionalise:
+$$(f_{fanning}  \frac{4L}{D}+K) Re^2 = \frac{\Delta P_{loss}}{   
+\frac{1}{2} \rho (\frac{ \mu}{\rho D})^2 }$$
+
+Into:
+
+$$Be_D = 0.5 (f_{fanning}  \frac{4L}{D}+K) Re^2$$
+$$Be_D = 0.5 (f_{darcy} \frac{L}{D}+K) Re^2$$
+
+
+This has the additional advantage of being easier to remember as there
+isn't a cube length to diameter term, or a constant of 32.
+
+Thus, the solution procedure when it comes to finding pipe mass flowrates
+and pressure losses is often to nondimensionalise the pressure loss and 
+velocity/mass flowrate terms and use this equation to solve for Be or Re.
+
+And then redimensionalise the terms.
+
+With this in mind, i'd like to have quick methods to calculate fLDK terms:
+
+
+$$fLDK = (f_{darcy} \frac{L}{D} +K) = (f_{fanning} \frac{4L}{D} +K)$$
+
+This term is convenient for us because it will negate the constant need
+to differentiate between $f_{darcy}$ and $f_{fanning}$. 
+
+This will be available to the end user to calculate.
+
+That about sums it up for the pipe friction factor.
+
+Here's the code with all the exception handling etc.
+
+```csharp
+public double fLDK(double ReynoldsNumber,
+		double roughnessRatio,
+		double lengthToDiameterRatio,
+		double K){
+	if(ReynoldsNumber == 0)
+		throw new DivideByZeroException();
+
+	if(ReynoldsNumber < 0)
+		throw new ArgumentOutOfRangeException();
+
+	if(roughnessRatio < 0)
+		throw new ArgumentOutOfRangeException("roughnessRatio<0");
+
+	if(lengthToDiameterRatio <= 0)
+		throw new ArgumentOutOfRangeException(
+				"lengthToDiameterRatio<=0");
+
+	if(K < 0)
+		throw new ArgumentOutOfRangeException(
+				"Form loss coefficient K < 0");
+
+	double fLDK;
+	double f = this.darcy(ReynoldsNumber,
+			roughnessRatio);
+	fLDK = f*lengthToDiameterRatio + K;
+
+	return fLDK;
+}
+```
+
+Basically, if the form loss coefficents, lengthToDiameter ratios are less
+than zero, i will also throw exceptions.
+
+However, we still want for us to find the bejan number. That's just the
+fLDK multiplied by $0.5 Re^2$ 
+
+$$Be = 0.5* fLDK * Re^2$$
+
+One would think that just substituting this equation into a function would work.
+
+However, if Re = 0, we would get an error again.
+
+To sort this out, I would then return Be = 0  if Re = 0.
+
+```csharp
+public double getBe(double ReynoldsNumber,
+		double roughnessRatio,
+		double lengthToDiameterRatio,
+		double K){
+
+	if(ReynoldsNumber == 0)
+		return 0.0;
+
+	double fLDK;
+	double f = this.darcy(ReynoldsNumber,
+			roughnessRatio);
+	fLDK = f*lengthToDiameterRatio + K;
+
+	double Be = 0.5*fLDK*
+		Math.Pow(ReynoldsNumber,2.0);
+
+	return Be;
+}
+```
+
+
+
+
+This will be under dimensionless calculations...
+
+## getRe
+We previously derived:
+$$Be = 0.5* fLDK * Re^2$$
+This becomes the equation we will solve iteratively for Re given a Be.
+
+Now, i also developed the following code for a first iteration
+based on the following equation:
+
+$$f_{fanning}(Re,\frac{\varepsilon}{D})* Re^2 = \frac{32 Be_L}{ (\frac{4L}{D})^3 
+}$$
+
+While i favour the use of $Be_D$ now, i have use $Be_L$ in the above equation.
+
+We can freely convert between $Be_L$ and $Be_D$ :
+$$Be_L = \frac{\Delta P_{loss} L^2 \rho}{\mu^2} $$
+$$Be_D = \frac{\Delta P_{loss} D^2 \rho}{\mu^2} $$
+$$Be_L = Be_D *(\frac{L}{D})^2$$
+
+Thus the code can still be made valid for pipes with zero form losses.
+
+### Code details for Pipe with zero form loss
 
 We want to use the Mathnet Numerics library
 
@@ -307,8 +516,8 @@ FindRoots.OfFunction(func<double,double> f, lowerBound, upperBound);
 ```
 
 
-Unfortunately, we don't quite have one input and one output. So we'll
-have to change types.
+Unfortunately, we don't quite have a one input and one output function,
+our Bejan number is dependent on L/D, Re, roughness ratio etc.
 
 So we'll have to resort to some object oriented trickery in order to do this.
 
@@ -329,31 +538,109 @@ takes the Bejan number, roughness ratio and lengthToDiameter ratio
 as constants. Then return the LHS-RHS as the output.
 
 
+However, we know for a fact that zero pressure loss is possible. Nevertheless
+this would imply that no flow is going through the pipe.
+
+This means that Re = 0 will be supplied to the fanning friction factor 
+function and we will get an error.
+
+How can we circumvent this?
+
+Basically in a no form loss scenario, (K = 0),
+
+the fanning term can be reduced to:
+
+$$f_{fanning} Re^2 = 16/Re *Re^2 = 16 Re$$
+
+This means that we don't calculate fanning friction factor directly,
+but just calculate the fanning term directly as 16Re.
+
+Substituting Re = 0 in such an equation will be all right.
+
+However, we also want this function to be continuous with the churchill 
+friction factor as the fanning term calculated with 16Re may have some
+discontinuities with the fanning term calculated using churchill correlation.
+
+How can we then circumvent this?
+
+We can use interpolation.
+
+We use churchill term to calculate the fanning term in the laminar regime,
+that's one fixed point, and using (Re = 0, fanningTerm = 0) 
+as the second fixed point, perform linear interpolation.
+
 Here's the result:
 
 ```csharp
 
-double pressureDropRoot(double Re){
+	this.roughnessRatio = roughnessRatio;
+	this.lengthToDiameter = lengthToDiameter;
+	this.bejanNumber = Be_L;
 
-	// fanning term
-	//
-	double fanningTerm;
-	fanningTerm = this.fanning(Re, this.roughnessRatio);
-	fanningTerm *= Math.Pow(Re,2.0);
+	// I'll define a pressureDrop function with which to find
+	// the Reynold's Number
+	double pressureDropRoot(double Re){
+
+		// fanning term
+		//
+		//
+		// Now here is a potential issue for stability,
+		// if Re = 0, the fanning friction factor is not well behaved,
+		// Hence it's better to use the laminar term at low Reynold's number
+		//
+		// we note that in the laminar regime, 
+		// f = 16/Re
+		// so f*Re^2 = 16*Re
+		double transitionPoint = 1800.0;
+		double fanningTerm;
+
+		if (Re > transitionPoint)
+		{
+			fanningTerm = this.fanning(
+					Re, this.roughnessRatio);
+			fanningTerm *= Math.Pow(Re,2.0);
+		}
+		else
+		{
+			// otherwise we return 16/Re*Re^2 or 16*Re
+			// or rather an interpolated version to preserve the
+			// continuity of the points.
+			IInterpolation _linear;
+
+			IList<double> xValues = new List<double>();
+			IList<double> yValues = new List<double>();
+			xValues.Add(0.0);
+			xValues.Add(transitionPoint);
+
+			yValues.Add(0.0);
+			yValues.Add(this.fanning(transitionPoint,this.roughnessRatio)*
+					Math.Pow(transitionPoint,2.0));
+
+			_linear = Interpolate.Linear(xValues,yValues);
+			fanningTerm = _linear.Interpolate(Re);
+		}
 
 
-	//  BejanTerm
-	//
-	double bejanTerm;
-	bejanTerm = 32.0 * this.bejanNumber;
-	bejanTerm *= Math.Pow(4.0*this.lengthToDiameter,-3);
 
-	// to set this to zero, we need:
-	//
-	return fanningTerm - bejanTerm;
 
+
+
+		//  BejanTerm
+		//
+		double bejanTerm;
+		bejanTerm = 32.0 * this.bejanNumber;
+		bejanTerm *= Math.Pow(4.0*this.lengthToDiameter,-3);
+
+		// to set this to zero, we need:
+		//
+		return fanningTerm - bejanTerm;
+
+	}
 }
 ```
+So with the above code, we have successfully represented:
+$$f_{fanning}(Re,\frac{\varepsilon}{D})* Re^2 - \frac{32 Be}{ (\frac{4L}{D})^3 
+} = 0$$
 
 The LHS is the fanningTerm. Which is
 
@@ -378,13 +665,18 @@ After that i use the FindRoots.OfFunction method
 I set the minimum Re to be 1 (otherwise we'll get infinity in the
 laminar region)
 
-And then 1e8 as the maximum. That's the upper limit of the moody
+And then 1e12 as the maximum. That's the upper limit of the moody
 chart.
 
 ```csharp
+double maxRe = 1e12;
 double ReynoldsNumber;
-ReynoldsNumber = FindRoots.OfFunction(pressureDropRoot, 1, 1e8);
+ReynoldsNumber = FindRoots.OfFunction(pressureDropRoot, 0, maxRe);
 ```
+
+I can't make the upper limit too high, or else the bisection algorithm
+won't converge. I think Re = 1e12 should cover all relevant pipe flow
+cases especially for incompressible flow.
 
 Unfortunately this means i have to use class parameters to share
 variables within the function as constants.
@@ -431,7 +723,109 @@ so that the memory is cleared.
 
 The only thing that remains is to test it!
 
+#### Valid values and Exceptions
 
+I designed this code to be able to handle backflow, or negative Bejan numbers
+due to negative pressure losses. (ie reverse flow)
+
+I assume of course, that the pipe's pressure loss profile is symmetrical.
+Meaning a 500 Pa pressure loss results in the same magnitude of flowrate
+as a -500 Pa pressure loss.
+
+If a negative Bejan number is supplied, then the bejan number is turned into
+the postiive equivalent. And i capture the value in a boolean:
+
+```csharp
+bool isNegative;
+if (Be_L < 0)
+{
+	Be_L *= -1;
+	isNegative = true;
+}
+else 
+{
+	isNegative = false;
+}
+
+```
+
+I then go on calculating as per normal, and then
+
+```csharp
+if (isNegative)
+{
+	return -ReynoldsNumber;
+}
+```
+
+if the bejan number is negative, i return the negative Re equivalent.
+
+For pipes without form losses, besides $Be_L$, i also consider roughness ratio
+and length to diameter.
+
+For pipes in particular, length to diameter of zero or less make no sense. We
+do not have a pipe with zero length for sure. All pipes or components have
+some lengthscale.
+
+Also, we can have roughness ratio equal zero, but not less than zero.
+That does not make physical sense.
+
+So i will throw exceptions in those cases:
+
+
+```csharp
+if(lengthToDiameterRatio <= 0)
+	throw new ArgumentOutOfRangeException(
+			"lengthToDiameterRatio<=0");
+
+if(roughnessRatio < 0)
+	throw new ArgumentOutOfRangeException(
+			"roughnessRatio<0");
+```
+
+In particular, we also don't want the Bejan number to exceed the amount
+corresponding to Re=1e12. That is definitely out of range.
+
+```csharp
+	// this part deals with negative Be_L values
+	// invalid Be_L values
+	bool isNegative;
+	if (Be_L < 0)
+	{
+		Be_L *= -1;
+		isNegative = true;
+	}
+	else 
+	{
+		isNegative = false;
+	}
+
+	double maxRe = 1e12;
+
+	// i calculate the Be_L corresponding to 
+	// Re = 1e12
+	double maxBe_D = this.getBe(maxRe,
+			roughnessRatio, lengthToDiameter,
+			0.0);
+	double maxBe_L = maxBe_D*
+		Math.Pow(lengthToDiameter,2.0);
+
+	if(Be_L >= maxBe_L)
+		throw new ArgumentOutOfRangeException(
+				"Be too large");
+```
+
+
+### code details for pipes with form losses
+
+Now that we've settled the base case of pipe Re vs Be, we can go on to 
+build upon this code to include form losses.
+
+I can of course define a special case for which there are zero form losses,
+And that's where i will just use the no form loss code tested before.
+
+(It's kind of a boilerplate legacy code, but it works..., and most of all,
+i don't need to re-test it.
 
 
 
@@ -451,3 +845,19 @@ Winning, H. K., & Coole, T. (2013). Explicit friction factor accuracy and comput
 ##### Turgut2014
 
 Turgut, O. E., Asker, M., & Coban, M. T. (2014). A review of non iterative friction factor correlations for the calculation of pressure drop in pipes. Bitlis Eren University Journal of Science and Technology, 4(1), 1-8.
+
+##### Zimparov2021
+
+Zimparov, V. D., Angelov, M. S., & Hristov, J. Y. (2021). Critical review of the definitions of the Bejan number-first law of thermodynamics. International Communications in Heat and Mass Transfer, 124, 105113.
+
+
+
+
+
+
+
+
+
+
+
+
