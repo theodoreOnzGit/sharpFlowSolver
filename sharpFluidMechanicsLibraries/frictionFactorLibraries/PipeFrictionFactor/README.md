@@ -413,6 +413,20 @@ However, if Re = 0, we would get an error again.
 
 To sort this out, I would then return Be = 0  if Re = 0.
 
+Lastly, i made a tweak, basically to save on some calculation
+cost when Re is in the laminar region.
+
+When in the laminar region, 
+$$f_{darcy} = \frac{64}{Re}$$
+$$fLDK*Re^2 = \frac{L}{D} * 64Re + K*Re^2 $$
+
+Nevertheless, there is potential discontinuity for 64Re and the
+value given by the churchill friction factor.
+
+My solution then is to perform linear interpolation, taking
+Re=0 and $f_{darcy}*Re^2=0$ and Re=1800 and 
+$f_{darcy}*Re^2 = 64*1800$ as fixed points
+
 ```csharp
 public double getBe(double ReynoldsNumber,
 		double roughnessRatio,
@@ -421,6 +435,49 @@ public double getBe(double ReynoldsNumber,
 
 	if(ReynoldsNumber == 0)
 		return 0.0;
+
+	if(ReynoldsNumber < 0)
+		throw new ArgumentOutOfRangeException("Re < 0");
+
+	if(roughnessRatio < 0)
+		throw new ArgumentOutOfRangeException("roughnessRatio<0");
+
+	if(lengthToDiameterRatio <= 0)
+		throw new ArgumentOutOfRangeException(
+				"lengthToDiameterRatio<=0");
+
+	if(K < 0)
+		throw new ArgumentOutOfRangeException(
+				"Form loss coefficient K < 0");
+
+	// i'm including an improvement for Re<1800
+	// so that we linearly interpolate the churchill
+	// friction factor from 1800 onwards
+	// basically, we are interpolating
+	// f_{darcy}*Re^2  = 64Re
+	// at lower Re values to increase accuracy and save computation
+	// cost
+	if(ReynoldsNumber <1800){
+		double ReTransition = 1800.0;
+		IInterpolation _linear_f_ReSq;
+
+		IList<double> xValues = new List<double>();
+		IList<double> yValues = new List<double>();
+		xValues.Add(0.0);
+		xValues.Add(ReTransition);
+
+		yValues.Add(0.0);
+		yValues.Add(64.0*ReTransition);
+
+		_linear_f_ReSq = Interpolate.Linear(xValues,yValues);
+		double fLDReSq = _linear_f_ReSq.Interpolate(
+				ReynoldsNumber)*lengthToDiameterRatio;
+
+		double kReSq = K*Math.Pow(ReynoldsNumber,2.0);
+		
+		return 0.5*(kReSq + fLDReSq);
+
+	}
 
 	double fLDK;
 	double f = this.darcy(ReynoldsNumber,
@@ -824,8 +881,116 @@ build upon this code to include form losses.
 I can of course define a special case for which there are zero form losses,
 And that's where i will just use the no form loss code tested before.
 
-(It's kind of a boilerplate legacy code, but it works..., and most of all,
 i don't need to re-test it.
+
+The code is as follows:
+
+```csharp
+
+public double getRe(double Be_D,
+		double roughnessRatio,
+		double lengthToDiameter,
+		double formLossK){
+
+	if(formLossK == 0){
+		double Be_L = Be_D * Math.Pow(lengthToDiameter,
+				2.0);
+		return this.getRe(Be_L,
+				roughnessRatio,
+				lengthToDiameter);
+	}
+
+	if(lengthToDiameter <= 0)
+		throw new ArgumentOutOfRangeException(
+				"lengthToDiameterRatio<=0");
+
+	if(roughnessRatio < 0)
+		throw new ArgumentOutOfRangeException(
+				"roughnessRatio<0");
+
+	if(formLossK < 0)
+		throw new ArgumentOutOfRangeException(
+				"formLossK<0");
+
+	// this part deals with negative Be_L values
+	// invalid Be_L values
+	bool isNegative;
+	if (Be_D < 0)
+	{
+		Be_D *= -1;
+		isNegative = true;
+	}
+	else 
+	{
+		isNegative = false;
+	}
+
+	double maxRe = 1e12;
+
+	// i calculate the Be_D corresponding to 
+	// Re = 1e12
+	double maxBe_D = this.getBe(maxRe,
+			roughnessRatio, lengthToDiameter,
+			0.0);
+
+	if(Be_D >= maxBe_D)
+		throw new ArgumentOutOfRangeException(
+				"Be too large");
+	// the above checks for all the relevant exceptions
+	// including formLossK < 0
+	//
+	// now we are ready to do root finding
+	//
+	// the underlying equation is 
+	// Be = 0.5*fLDK*Re^2
+
+	this.roughnessRatio = roughnessRatio;
+	this.lengthToDiameter = lengthToDiameter;
+	this.bejanNumber = Be_D;
+	this.formLossK = formLossK;
+
+	double pressureDropRoot(double Re){
+		// i'm solving for
+		// Be - 0.5*fLDK*Re^2 = 0 
+		// the fLDK term can be calculated using
+		// getBe
+		//
+		// now i don't really need the interpolation
+		// term in here because when Re = 0,
+		// Be = 0 in the getBe code.
+		// so really, no need for fancy interpolation.
+
+		double fLDKterm = this.getBe(Re,
+				this.roughnessRatio,
+				this.lengthToDiameter,
+				this.formLossK);
+
+		return this.bejanNumber - fLDKterm;
+
+	}
+	
+	double ReynoldsNumber = 0.0;
+	ReynoldsNumber = FindRoots.OfFunction(
+			pressureDropRoot, 0, 
+			maxRe);
+
+	// now i'll clean everything up
+	this.roughnessRatio = 0.0;
+	this.lengthToDiameter = 0.0;
+	this.bejanNumber = 0.0;
+	this.formLossK = 0.0;
+
+
+	if (isNegative)
+	{
+		return -ReynoldsNumber;
+	}
+
+	return ReynoldsNumber;
+}
+```
+
+
 
 
 

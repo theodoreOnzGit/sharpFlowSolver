@@ -5,7 +5,7 @@ using sharpFluidMechanicsLibraries;
 
 
 namespace frictionFactorTests;
-public class FrictionFactorTests : testOutputHelper
+public partial class FrictionFactorTests : testOutputHelper
 {
 	public FrictionFactorTests(ITestOutputHelper outputHelper):base(outputHelper){
 

@@ -80,10 +80,10 @@ namespace sharpFluidMechanicsLibraries{
 				double lengthToDiameterRatio,
 				double K){
 			if(ReynoldsNumber == 0)
-				throw new DivideByZeroException();
+				throw new DivideByZeroException("Re = 0");
 
 			if(ReynoldsNumber < 0)
-				throw new ArgumentOutOfRangeException();
+				throw new ArgumentOutOfRangeException("Re < 0");
 
 			if(roughnessRatio < 0)
 				throw new ArgumentOutOfRangeException("roughnessRatio<0");
@@ -119,6 +119,20 @@ namespace sharpFluidMechanicsLibraries{
 
 			if(ReynoldsNumber == 0)
 				return 0.0;
+
+			if(ReynoldsNumber < 0)
+				throw new ArgumentOutOfRangeException("Re < 0");
+
+			if(roughnessRatio < 0)
+				throw new ArgumentOutOfRangeException("roughnessRatio<0");
+
+			if(lengthToDiameterRatio <= 0)
+				throw new ArgumentOutOfRangeException(
+						"lengthToDiameterRatio<=0");
+
+			if(K < 0)
+				throw new ArgumentOutOfRangeException(
+						"Form loss coefficient K < 0");
 
 			// i'm including an improvement for Re<1800
 			// so that we linearly interpolate the churchill

@@ -10,7 +10,7 @@
     <RepositoryUrl>https://github.com/theodoreOnzGit/sharpFlowSolver</RepositoryUrl>
     <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
     <PackageTags>Fluid Mechanics Engineering science Math mathematics calculation</PackageTags>
-	<Version>0.0.2</Version>
+	<Version>0.0.3</Version>
   </PropertyGroup>
 
   <ItemGroup>
