@@ -1825,4 +1825,94 @@ public class FrictionFactorTests : testOutputHelper
 
 
 	}
+	// the following tests the getRe method
+	// in ChurchillFrictionFactor
+	// in this case, K != 0
+	// also Re<0, when Be<0
+	//
+	// There is one case of non convergence described
+	// in the above fact test.. see below for details
+	[Theory]
+	[InlineData(-4000, 0.05, 0.076986834889224, 4.0,2.0)]
+	[InlineData(-40000, 0.05, 0.07212405402775,5.0, 4.53)]
+	[InlineData(-4e5, 0.05, 0.071608351787938, 10.0, 2.25)]
+	[InlineData(-4e6, 0.05,  0.071556444535705, 20.0, 6.26)]
+	[InlineData(-4e7, 0.05,  0.071551250389636, 100.0, 123.9)]
+	[InlineData(-4e8, 0.05, 0.071550730940769, 1000.0,15.12)]
+	[InlineData(-4e9, 0.05, 0.071550678995539, 65.0, 120.9)]
+	[InlineData(-4e7, 0.00005, 0.010627694187016, 35.0, 1205.1)]
+	[InlineData(-4e6, 0.001, 0.019714092419925, 8.9,77.2)]
+	[InlineData(-4e5, 0.01, 0.038055838413508, 50.0,12.4)]
+	[InlineData(-4e4, 0.03,  0.057933060738478, 1.0e5, 98.7)]
+	public void WhenWrapperGetReFormLossShouldGetAccurateReTurbulentNegative(
+			double Re,
+			double roughnessRatio, 
+			double referenceDarcyFrictionFactor,
+			double lengthToDiameter,
+			double formLossK){
+		// the objective of this test is to test the
+		// accuracy of getting Re using the getRe function
+		//
+		// we have a reference Reynold's number
+		//
+		// and we need to get a Re using
+		// fanning friction factor
+		// and roughness Ratio
+		//
+		// we already have roughness ratio
+		// but we need Bejan number and L/D
+		//
+		// Bejan number would be known in real life.
+		// however, in this case, we cannot arbitrarily
+		// specify it
+		// the only equation that works now
+		// is Be = 0.5*Re^2 * (f*L/D+K)
+		//
+		// That means we just specify a L/D ratio
+		// and that would specify everything.
+		// So I'm going to randomly specify L/D ratios and hope that
+		// works
+		
+
+		// setup
+		//
+		double referenceRe = Re;
+		double K = formLossK;
+
+		PipeReAndBe testObject;
+		testObject = new PipeReAndBe();
+
+
+		double fanningFrictionFactor = 0.25*referenceDarcyFrictionFactor;
+		double Be_D = -0.5*Math.Pow(Re,2.0)*
+			(referenceDarcyFrictionFactor*
+			 lengthToDiameter+K);
+
+		// act
+
+		double resultRe;
+		resultRe = testObject.getRe(
+				Be_D,
+				roughnessRatio,
+				lengthToDiameter,
+				K);
+
+		// Assert (manual test)
+
+		// Assert.Equal(referenceRe, resultRe);
+
+		// Assert (auto test)
+		// test if error is within 1% of actual Re
+		double errorFraction = Math.Abs(resultRe - referenceRe)/Math.Abs(referenceRe);
+		double errorTolerance = 0.01;
+
+		if(errorFraction < errorTolerance){
+			Assert.True(errorFraction < errorTolerance);
+			return;
+		}
+		Assert.Equal(referenceRe,resultRe);
+
+
+
+	}
 }
