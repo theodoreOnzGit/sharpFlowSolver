@@ -36,7 +36,7 @@ namespace sharpFluidMechanicsLibraries{
 	public interface IPipeMassFlowAndPressureLossTilted :
 		IPipeMassFlowAndPressureLoss{
 
-		MassFlow getMassFlow(Pressure pressureLoss,
+		MassFlow getMassFlow(Pressure pressureChange,
 				Area crossSectionalArea,
 				Length hydraulicDiameter,
 				DynamicViscosity fluidViscosity,
@@ -53,6 +53,84 @@ namespace sharpFluidMechanicsLibraries{
 				Density fluidDensity,
 				Length pipeLength,
 				Angle inclineAngle,
+				double roughnessRatio,
+				double formLossK);
+		}
+
+	public interface IPipeMassFlowAndPressureLossTiltedWithSource :
+		IPipeMassFlowAndPressureLossTilted{
+
+		MassFlow getMassFlow(Pressure pressureChange,
+				Area crossSectionalArea,
+				Length hydraulicDiameter,
+				DynamicViscosity fluidViscosity,
+				Density fluidDensity,
+				Length pipeLength,
+				Angle inclineAngle,
+				Pressure sourceOrPumpPressure,
+				double roughnessRatio,
+				double formLossK);
+
+		Pressure getPressureChange(MassFlow fluidMassFlowrate,
+				Area crossSectionalArea,
+				Length hydraulicDiameter,
+				DynamicViscosity fluidViscosity,
+				Density fluidDensity,
+				Length pipeLength,
+				Angle inclineAngle,
+				Pressure sourceOrPumpPressure,
+				double roughnessRatio,
+				double formLossK);
+
+
+		// commonly for pumps, kinematic pressure and pump head is used
+		// so i'll have those overloads also
+
+		// kinematic pressure overloads
+		//
+		MassFlow getMassFlow(Pressure pressureChange,
+				Area crossSectionalArea,
+				Length hydraulicDiameter,
+				DynamicViscosity fluidViscosity,
+				Density fluidDensity,
+				Length pipeLength,
+				Angle inclineAngle,
+				SpecificEnergy sourceOrPumpKinematicPressure,
+				double roughnessRatio,
+				double formLossK);
+
+		Pressure getPressureChange(MassFlow fluidMassFlowrate,
+				Area crossSectionalArea,
+				Length hydraulicDiameter,
+				DynamicViscosity fluidViscosity,
+				Density fluidDensity,
+				Length pipeLength,
+				Angle inclineAngle,
+				SpecificEnergy sourceOrPumpKinematicPressure,
+				double roughnessRatio,
+				double formLossK);
+		
+		// pump head overloads
+
+		MassFlow getMassFlow(Pressure pressureChange,
+				Area crossSectionalArea,
+				Length hydraulicDiameter,
+				DynamicViscosity fluidViscosity,
+				Density fluidDensity,
+				Length pipeLength,
+				Angle inclineAngle,
+				Length sourceOrPumpHead,
+				double roughnessRatio,
+				double formLossK);
+
+		Pressure getPressureChange(MassFlow fluidMassFlowrate,
+				Area crossSectionalArea,
+				Length hydraulicDiameter,
+				DynamicViscosity fluidViscosity,
+				Density fluidDensity,
+				Length pipeLength,
+				Angle inclineAngle,
+				Length sourceOrPumpHead,
 				double roughnessRatio,
 				double formLossK);
 		}
